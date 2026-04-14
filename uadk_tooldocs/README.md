@@ -11,7 +11,8 @@
 | 文档 | 说明 | 适用场景 |
 |------|------|----------|
 | [uadk_tool_quick_reference.md](uadk_tool_quick_reference.md) | **指令速查表** | 日常使用、命令查阅 |
-| [uadk_tool_architecture.md](uadk_tool_architecture.md) | **架构分析** | 深入理解、二次开发 |
+| [uadk_tool_architecture.md](uadk_tool_architecture.md) | **架构分析** | 深入理解模块结构 |
+| [uadk_tool_code_framework_analysis.md](uadk_tool_code_framework_analysis.md) | **代码框架深度解析** | 二次开发、代码学习 |
 
 ### 1.2 官方文档
 
