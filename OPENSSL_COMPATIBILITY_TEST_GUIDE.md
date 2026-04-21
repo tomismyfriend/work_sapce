@@ -465,3 +465,53 @@ UADK OpenSSL 兼容性验证报告
 **文档版本**: v1.0  
 **适用 UADK 版本**: 2.10.0+  
 **最后更新**: 2026-04-21
+
+
+根据不同 Linux 发行版，切换 OpenSSL 3.0 的方法：
+CentOS 7/8（默认 OpenSSL 1.1.x）
+方法 1：编译安装 OpenSSL 3.0
+# 下载 OpenSSL 3.0
+wget https://www.openssl.org/source/openssl-3.0.13.tar.gz
+tar -xzf openssl-3.0.13.tar.gz
+cd openssl-3.0.13
+# 配置安装路径（避免覆盖系统默认）
+./config --prefix=/usr/local/openssl-3.0 --openssldir=/usr/local/openssl-3.0
+# 编译安装
+make -j$(nproc)
+make install
+# 设置环境变量
+export PATH=/usr/local/openssl-3.0/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/openssl-3.0/lib:$LD_LIBRARY_PATH
+export PKG_CONFIG_PATH=/usr/local/openssl-3.0/lib/pkgconfig:$PKG_CONFIG_PATH
+# 验证版本
+openssl version
+# 输出：OpenSSL 3.0.13
+方法 2：永久设置（写入 profile）
+echo 'export PATH=/usr/local/openssl-3.0/bin:$PATH' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=/usr/local/openssl-3.0/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
+echo 'export PKG_CONFIG_PATH=/usr/local/openssl-3.0/lib/pkgconfig:$PKG_CONFIG_PATH' >> ~/.bashrc
+source ~/.bashrc
+Ubuntu 22.04+（已默认 OpenSSL 3.0）
+# 直接检查版本
+openssl version
+# 输出：OpenSSL 3.0.x
+# 安装开发包
+apt install -y openssl libssl-dev
+CentOS 9 Stream（已默认 OpenSSL 3.0）
+# 直接检查版本
+openssl version
+# 安装开发包
+yum install -y openssl openssl-devel
+编译 UADK 时指定 OpenSSL 3.0
+# 编译前设置环境变量
+export PKG_CONFIG_PATH=/usr/local/openssl-3.0/lib/pkgconfig:$PKG_CONFIG_PATH
+export LD_LIBRARY_PATH=/usr/local/openssl-3.0/lib:$LD_LIBRARY_PATH
+# 编译时指定
+./configure --enable-perf=yes --includedir=/usr/local/include/ --disable-static --enable-shared --with-openssl=/usr/local/openssl-3.0
+检查当前 OpenSSL 版本
+# 查看系统 OpenSSL
+openssl version
+# 查看 pkg-config 检测的版本
+pkg-config --modversion openssl
+# 查看头文件版本
+grep "OPENSSL_VERSION_NUMBER" /usr/include/openssl/opensslv.h
