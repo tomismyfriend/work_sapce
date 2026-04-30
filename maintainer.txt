@@ -1,0 +1,40 @@
+根据当前 MAINTAINERS 文件，UADK 有两个条目：
+HiSilicon UADK crypto
+M: Zhangfei Gao <zhangfei.gao@linaro.org>
+F: drivers/crypto/uadk/
+HiSilicon UADK compress
+M: Zhangfei Gao <zhangfei.gao@linaro.org>
+F: drivers/compress/uadk/
+请提供 wuzongyu 的邮箱地址，我将帮你生成完整的 patch。
+---
+示例 patch（假设邮箱为 wuzongyu@xxx.com）：
+From: Your Name <your.email@xxx.com>
+Subject: [PATCH] maintainers: update for UADK drivers
+Zhangfei Gao is unreachable and cannot continue maintaining
+the UADK crypto and compress drivers.
+Wuzongyu will take over the maintainer role.
+Signed-off-by: Your Name <your.email@xxx.com>
+---
+ MAINTAINERS | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+diff --git a/MAINTAINERS b/MAINTAINERS
+index xxx..yyy 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -XXX,XX +XXX,XX @@ Crypto Drivers
+ 
+ HiSilicon UADK crypto
+-M: Zhangfei Gao <zhangfei.gao@linaro.org>
++M: Wuzongyu <wuzongyu@xxx.com>
+ F: drivers/crypto/uadk/
+ F: doc/guides/cryptodevs/uadk.rst
+ F: doc/guides/cryptodevs/features/uadk.ini
+ 
+@@ -YYY,XX +YYY,XX @@ Compression Drivers
+ 
+ HiSilicon UADK compress
+-M: Zhangfei Gao <zhangfei.gao@linaro.org>
++M: Wuzongyu <wuzongyu@xxx.com>
+ F: drivers/compress/uadk/
+ F: doc/guides/compressdevs/uadk.rst
+ F: doc/guides/compressdevs/features/uadk.ini

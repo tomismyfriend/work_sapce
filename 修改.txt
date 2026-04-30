@@ -1,0 +1,35 @@
+static int chunk_inflate(void *in, size_t in_sz, void *out, size_t *out_sz,
+			 struct test_options *opts)
+{
+	z_stream strm;
+	int ret;
+	int ret, wbits;
+	memset(&strm, 0, sizeof(z_stream));
+	/* Window size of 15, +32 for auto-decoding gzip/zlib */
+	ret = inflateInit2(&strm, 15 + 32);
+	/*
+	 * Window bits parameter:
+	 * - deflate (alg 0): -15 (negative = no header, raw deflate)
+	 * - zlib (alg 1):    15 (zlib header)
+	 * - gzip (alg 2):    15 + 16 (gzip header)
+	 * - auto detect:     15 + 32 (auto-detect zlib/gzip header)
+	 */
+	switch (opts->alg_type) {
+	case WD_DEFLATE:
+		wbits = -15;
+		break;
+	case WD_ZLIB:
+		wbits = 15;
+		break;
+	case WD_GZIP:
+		wbits = 15 + 16;
+		break;
+	default:
+		wbits = 15 + 32;  /* auto-detect for other cases */
+		break;
+	}
+	ret = inflateInit2(&strm, wbits);
+	if (ret != Z_OK) {
+		COMP_TST_PRT("zlib inflateInit: %d\n", ret);
+		return -EINVAL;
+	}
