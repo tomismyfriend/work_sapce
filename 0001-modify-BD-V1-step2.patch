@@ -1,0 +1,200 @@
+From d22eb536ff158e70b4f82acca05e47afe3d80539 Mon Sep 17 00:00:00 2001
+From: Zongyu Wu <1294468687@qq.com>
+Date: Fri, 8 May 2026 16:05:55 +0800
+Subject: [PATCH] modify BD V1 step2
+
+---
+ v1/drv/hisi_zip_udrv.c | 137 ++++++++++++++++-------------------------
+ 1 file changed, 54 insertions(+), 83 deletions(-)
+
+diff --git a/v1/drv/hisi_zip_udrv.c b/v1/drv/hisi_zip_udrv.c
+index 3b690ae..43952da 100644
+--- a/v1/drv/hisi_zip_udrv.c
++++ b/v1/drv/hisi_zip_udrv.c
+@@ -249,7 +249,7 @@ static int qm_fill_zip_sqe_get_phy_addr(struct hisi_zip_sqe_addr *addr,
+ 			   msg->stream_mode == WCRYPTO_COMP_STATEFUL &&
+ 			   msg->op_type == WCRYPTO_INFLATE;
+ 
+-	if (msg->stream_mode == WCRYPTO_COMP_STATEFUL && !v5_stream_decomp) {
++	if (msg->stream_mode == WCRYPTO_COMP_STATEFUL) {
+ 		phy_ctxbuf = (uintptr_t)drv_iova_map(q, msg->ctx_buf,
+ 						     MAX_CTX_RSV_SIZE);
+ 		if (!phy_ctxbuf) {
+@@ -257,21 +257,15 @@ static int qm_fill_zip_sqe_get_phy_addr(struct hisi_zip_sqe_addr *addr,
+ 			return -WD_ENOMEM;
+ 		}
+ 
+-		buf = (struct hisi_zip_buf *)(msg->ctx_buf + CTX_STOREBUF_OFFSET);
+-		if (buf->pending_out) {
+-			/* skip hw and output from internal buf */
+-			buf->skip_hw = 1;
+-		} else if (msg->avail_out <= SW_STOREBUF_TH && msg->data_fmt != WD_SGL_BUF) {
+-			/* Enable internal buf to replace the user output buffer. */
+-			phy_out = phy_ctxbuf + CTX_STOREBUF_OFFSET;
+-			buf->pending_out = STORE_BUF_SIZE;
+-		}
+-	} else if (msg->stream_mode == WCRYPTO_COMP_STATEFUL) {
+-		phy_ctxbuf = (uintptr_t)drv_iova_map(q, msg->ctx_buf,
+-						     MAX_CTX_RSV_SIZE);
+-		if (!phy_ctxbuf) {
+-			WD_ERR("Get zip ctx buf dma address fail!\n");
+-			return -WD_ENOMEM;
++		if (!v5_stream_decomp) {
++			buf = (struct hisi_zip_buf *)(msg->ctx_buf + CTX_STOREBUF_OFFSET);
++			if (buf->pending_out) {
++				buf->skip_hw = 1;
++			} else if (msg->avail_out <= SW_STOREBUF_TH &&
++				   msg->data_fmt != WD_SGL_BUF) {
++				phy_out = phy_ctxbuf + CTX_STOREBUF_OFFSET;
++				buf->pending_out = STORE_BUF_SIZE;
++			}
+ 		}
+ 	}
+ 
+@@ -898,99 +892,76 @@ int qm_parse_zip_sqe_v3(void *hw_msg, const struct qm_queue_info *info,
+ 
+ 	recv_msg->in_cons = sqe->consumed;
+ 	recv_msg->produced = sqe->produced;
++	recv_msg->checksum = sqe->checksum;
+ 
+ 	if (v5_stream_decomp) {
+ 		ctx_status = sqe->isize & HZ_V5_CTX_STATUS_MASK;
+-		if (ctx_status & HZ_V5_CTX_STATUS_DECOMP_DONE) {
++		if (ctx_status & HZ_V5_CTX_STATUS_DECOMP_DONE)
+ 			recv_msg->status = WCRYPTO_DECOMP_END;
+-		} else if (ctx_status && sqe->consumed == 0 && sqe->produced == 0) {
++		else if (ctx_status && sqe->consumed == 0 && sqe->produced == 0) {
+ 			WD_ERR("v5 stream decomp error: ctx_status=0x%x!\n", ctx_status);
+ 			recv_msg->status = WD_EAGAIN;
+ 		} else if (ctx_status) {
+ 			WD_ERR("v5 stream decomp error: ctx_status=0x%x!\n", ctx_status);
+ 			recv_msg->status = WD_IN_EPARA;
+-		} else {
++		} else
+ 			recv_msg->status = 0;
+-		}
++
+ 		if (recv_msg->ctx_buf)
+ 			*(__u32 *)recv_msg->ctx_buf = sqe->ctx_dw0;
+-		recv_msg->checksum = sqe->checksum;
+-		goto v5_skip_cache_process;
+-	}
++	} else {
++		if (recv_msg->ctx_buf) {
++			*(__u32 *)recv_msg->ctx_buf = sqe->ctx_dw0;
++			*(__u32 *)(recv_msg->ctx_buf + CTX_PRIV1_OFFSET) = sqe->ctx_dw1;
++			*(__u32 *)(recv_msg->ctx_buf + CTX_PRIV2_OFFSET) = sqe->ctx_dw2;
++			buf = (struct hisi_zip_buf *)(recv_msg->ctx_buf + CTX_STOREBUF_OFFSET);
++		}
++		recv_msg->isize = sqe->isize;
+ 
+-	if (recv_msg->ctx_buf) {
+-		*(__u32 *)recv_msg->ctx_buf = sqe->ctx_dw0;
+-		*(__u32 *)(recv_msg->ctx_buf + CTX_PRIV1_OFFSET) = sqe->ctx_dw1;
+-		*(__u32 *)(recv_msg->ctx_buf + CTX_PRIV2_OFFSET) = sqe->ctx_dw2;
++		if (status != 0 && status != HW_NEGACOMPRESS && status != HW_DECOMP_END &&
++		    (!buf || !buf->skip_hw)) {
++			zip_err_bd_print(ctx_st, status, type);
++			recv_msg->status = WD_IN_EPARA;
++		} else
++			recv_msg->status = 0;
++
++		qm_parse_zip_sqe_set_status(recv_msg, status, lstblk, ctx_st);
++
++		if (ctx_st == HW_DECOMPING_NO_SPACE && recv_msg->in_size == recv_msg->in_cons &&
++		    ctx_bfinal && (sqe->ctx_dw1 & HZ_CTX_STORE_MASK))
++			recv_msg->status = WCRYPTO_DECOMP_BLK_NOSTART;
++
++		bit_cnt = (sqe->ctx_dw0 & CTX_HEAD_BIT_CNT_MASK) >> CTX_HEAD_BIT_CNT_SHIFT;
++		if (!recv_msg->status && bit_cnt && ctx_st == HW_DECOMP_BLK_NOSTART &&
++		    recv_msg->alg_type == WCRYPTO_RAW_DEFLATE) {
++			ctx_win_len = WIN_LEN_ALIGN(ctx_win_len);
++			cache_data = recv_msg->ctx_buf + CTX_BUFFER_OFFSET +
++				     CTX_BLOCKST_OFFSET + ctx_win_len;
++			ret = check_huffman_block_integrity(cache_data, bit_cnt);
++			if (ret < 0) {
++				WD_ERR("invalid: unable to parse data!\n");
++				recv_msg->status = WD_IN_EPARA;
++			} else if (ret)
++				recv_msg->status = WCRYPTO_DECOMP_BLK_NOSTART;
++		}
++
++		if (buf && buf->pending_out)
++			copy_from_buf(recv_msg, buf);
+ 	}
+-	recv_msg->isize = sqe->isize;
+-	recv_msg->checksum = sqe->checksum;
+ 
+-v5_skip_cache_process:
+ 	phy_in = DMA_ADDR(sqe->source_addr_h, sqe->source_addr_l);
+ 	drv_iova_unmap(q, recv_msg->src, (void *)phy_in, recv_msg->in_size);
+ 	if (recv_msg->ctx_buf) {
+-		buf = (struct hisi_zip_buf *)(recv_msg->ctx_buf + CTX_STOREBUF_OFFSET);
+ 		phy_ctxbuf = DMA_ADDR(sqe->stream_ctx_addr_h, sqe->stream_ctx_addr_l) -
+ 			     CTX_BUFFER_OFFSET;
+ 		drv_iova_unmap(q, recv_msg->ctx_buf, (void *)phy_ctxbuf,
+ 			       MAX_CTX_RSV_SIZE);
+ 	}
+ 
+-	if (v5_stream_decomp) {
+-		phy_out = DMA_ADDR(sqe->dest_addr_h, sqe->dest_addr_l);
+-		drv_iova_unmap(q, recv_msg->dst, (void *)phy_out, recv_msg->avail_out);
+-		goto v5_end;
+-	}
+-
+-	/*
+-	 * The output mapping address needs to be released only when the internal buffer
+-	 * is not enabled or hw is skipped.
+-	 */
+-	if (!buf || !buf->pending_out || buf->skip_hw) {
+-		phy_out = DMA_ADDR(sqe->dest_addr_h, sqe->dest_addr_l);
++	phy_out = DMA_ADDR(sqe->dest_addr_h, sqe->dest_addr_l);
++	if (v5_stream_decomp || !buf || !buf->pending_out || buf->skip_hw)
+ 		drv_iova_unmap(q, recv_msg->dst, (void *)phy_out, recv_msg->avail_out);
+-	}
+-
+-	if (status != 0 && status != HW_NEGACOMPRESS && status != HW_DECOMP_END &&
+-	    (!buf || !buf->skip_hw)) {
+-		zip_err_bd_print(ctx_st, status, type);
+-		recv_msg->status = WD_IN_EPARA;
+-	} else {
+-		recv_msg->status = 0;
+-	}
+-
+-	qm_parse_zip_sqe_set_status(recv_msg, status, lstblk, ctx_st);
+-	if (ctx_st == HW_DECOMPING_NO_SPACE && recv_msg->in_size == recv_msg->in_cons &&
+-	    ctx_bfinal && (sqe->ctx_dw1 & HZ_CTX_STORE_MASK))
+-		recv_msg->status = WCRYPTO_DECOMP_BLK_NOSTART;
+-
+-	/*
+-	 * It need to analysis the data cache by hardware.
+-	 * If the cache data is a complete huffman block,
+-	 * the drv send WCRYPTO_DECOMP_BLK_NOSTART to user
+-	 * to sending a request for clearing the cache.
+-	 */
+-	bit_cnt = (sqe->ctx_dw0 & CTX_HEAD_BIT_CNT_MASK) >> CTX_HEAD_BIT_CNT_SHIFT;
+-	if (!recv_msg->status && bit_cnt && ctx_st == HW_DECOMP_BLK_NOSTART &&
+-	    recv_msg->alg_type == WCRYPTO_RAW_DEFLATE) {
+-		/* ctx_win_len need to aligned with 16 */
+-		ctx_win_len = WIN_LEN_ALIGN(ctx_win_len);
+-		cache_data = recv_msg->ctx_buf + CTX_BUFFER_OFFSET +
+-			     CTX_BLOCKST_OFFSET + ctx_win_len;
+-		ret = check_huffman_block_integrity(cache_data, bit_cnt);
+-		if (ret < 0) {
+-			WD_ERR("invalid: unable to parse data!\n");
+-			recv_msg->status = WD_IN_EPARA;
+-		} else if (ret) {
+-			recv_msg->status = WCRYPTO_DECOMP_BLK_NOSTART;
+-		}
+-	}
+-
+-	if (buf && buf->pending_out)
+-		copy_from_buf(recv_msg, buf);
+ 
+-v5_end:
+ 	tag = (void *)(uintptr_t)recv_msg->udata;
+ 	if (tag && tag->priv && !info->sqe_fill_priv)
+ 		fill_priv_lz77_zstd(sqe, recv_msg);
+-- 
+2.47.0.windows.2
+
