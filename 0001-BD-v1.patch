@@ -1,0 +1,203 @@
+From b734f92fce26e9e9cae7c5be234e4914503aceea Mon Sep 17 00:00:00 2001
+From: Zongyu Wu <1294468687@qq.com>
+Date: Fri, 8 May 2026 11:57:34 +0800
+Subject: [PATCH] =?UTF-8?q?=E9=80=82=E9=85=8DBD=E4=BF=AE=E6=94=B9v1?=
+ =?UTF-8?q?=E4=BF=AE=E6=94=B9?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ v1/drv/hisi_qm_udrv.h  |  1 +
+ v1/drv/hisi_zip_udrv.c | 64 ++++++++++++++++++++++++++++++++++++++++--
+ v1/drv/hisi_zip_udrv.h | 16 +++++++++++
+ 3 files changed, 79 insertions(+), 2 deletions(-)
+
+diff --git a/v1/drv/hisi_qm_udrv.h b/v1/drv/hisi_qm_udrv.h
+index d71f9de..07c96f7 100644
+--- a/v1/drv/hisi_qm_udrv.h
++++ b/v1/drv/hisi_qm_udrv.h
+@@ -198,6 +198,7 @@ void qm_rx_from_cache(struct qm_queue_info *info, void **resp, __u32 num);
+ #define HISI_QM_API_VER_BASE "hisi_qm_v1"
+ #define HISI_QM_API_VER2_BASE "hisi_qm_v2"
+ #define HISI_QM_API_VER3_BASE "hisi_qm_v3"
++#define HISI_QM_API_VER5_BASE "hisi_qm_v5"
+ 
+ #define WD_UACCE_CMD_QM_SET_QP_CTX	_IOWR('H', 10, struct hisi_qp_ctx)
+ #define WD_UACCE_CMD_QM_SET_QP_INFO	_IOWR('H', 11, struct hisi_qp_info)
+diff --git a/v1/drv/hisi_zip_udrv.c b/v1/drv/hisi_zip_udrv.c
+index d4e5dc4..3b690ae 100644
+--- a/v1/drv/hisi_zip_udrv.c
++++ b/v1/drv/hisi_zip_udrv.c
+@@ -238,12 +238,18 @@ static int qm_fill_zip_sqe_get_phy_addr(struct hisi_zip_sqe_addr *addr,
+ 					struct wcrypto_comp_msg *msg,
+ 					struct wd_queue *q, bool is_lz77)
+ {
++	struct q_info *qinfo = q->qinfo;
+ 	struct hisi_zip_buf *buf;
+ 	uintptr_t phy_ctxbuf = 0;
+ 	uintptr_t phy_out = 0;
+ 	uintptr_t phy_in;
++	bool v5_stream_decomp;
+ 
+-	if (msg->stream_mode == WCRYPTO_COMP_STATEFUL) {
++	v5_stream_decomp = strstr(qinfo->hw_type, HISI_QM_API_VER5_BASE) &&
++			   msg->stream_mode == WCRYPTO_COMP_STATEFUL &&
++			   msg->op_type == WCRYPTO_INFLATE;
++
++	if (msg->stream_mode == WCRYPTO_COMP_STATEFUL && !v5_stream_decomp) {
+ 		phy_ctxbuf = (uintptr_t)drv_iova_map(q, msg->ctx_buf,
+ 						     MAX_CTX_RSV_SIZE);
+ 		if (!phy_ctxbuf) {
+@@ -260,6 +266,13 @@ static int qm_fill_zip_sqe_get_phy_addr(struct hisi_zip_sqe_addr *addr,
+ 			phy_out = phy_ctxbuf + CTX_STOREBUF_OFFSET;
+ 			buf->pending_out = STORE_BUF_SIZE;
+ 		}
++	} else if (msg->stream_mode == WCRYPTO_COMP_STATEFUL) {
++		phy_ctxbuf = (uintptr_t)drv_iova_map(q, msg->ctx_buf,
++						     MAX_CTX_RSV_SIZE);
++		if (!phy_ctxbuf) {
++			WD_ERR("Get zip ctx buf dma address fail!\n");
++			return -WD_ENOMEM;
++		}
+ 	}
+ 
+ 	phy_in = (uintptr_t)drv_iova_map(q, msg->src, msg->in_size);
+@@ -744,6 +757,8 @@ int qm_fill_zip_sqe_v3(void *smsg, struct qm_queue_info *info, __u16 i)
+ 	struct wcrypto_comp_msg *msg = smsg;
+ 	struct wcrypto_comp_tag *tag = (void *)(uintptr_t)msg->udata;
+ 	struct wd_queue *q = info->q;
++	struct q_info *qinfo = q->qinfo;
++	bool v5_stream_decomp;
+ 	__u8 flush_type;
+ 	__u8 data_fmt;
+ 	int ret;
+@@ -789,6 +804,16 @@ int qm_fill_zip_sqe_v3(void *smsg, struct qm_queue_info *info, __u16 i)
+ 	sqe->dw9 |= data_fmt << HZ_BUF_TYPE_SHIFT;
+ 
+ 	ops[msg->alg_type].fill_sqe_hw_info(sqe, msg);
++
++	v5_stream_decomp = strstr(qinfo->hw_type, HISI_QM_API_VER5_BASE) &&
++			   msg->stream_mode == WCRYPTO_COMP_STATEFUL &&
++			   msg->op_type == WCRYPTO_INFLATE;
++	if (v5_stream_decomp) {
++		sqe->ctx_dw1 = 0;
++		sqe->ctx_dw2 = 0;
++		sqe->isize = 0;
++	}
++
+ 	sqe->tag_l = msg->tag;
+ 
+ 	if (tag && info->sqe_fill_priv)
+@@ -842,6 +867,9 @@ int qm_parse_zip_sqe_v3(void *hw_msg, const struct qm_queue_info *info,
+ {
+ 	struct wcrypto_comp_msg *recv_msg = info->req_cache[i];
+ 	struct hisi_zip_sqe_v3 *sqe = hw_msg;
++	struct wd_queue *q = info->q;
++	struct q_info *qinfo = q->qinfo;
++	bool v5_stream_decomp;
+ 	__u16 ctx_bfinal = sqe->ctx_dw0 & HZ_CTX_BFINAL_MASK;
+ 	__u32 ctx_win_len = sqe->ctx_dw2 & CTX_WIN_LEN_MASK;
+ 	__u16 ctx_st = sqe->ctx_dw0 & HZ_CTX_ST_MASK;
+@@ -850,8 +878,8 @@ int qm_parse_zip_sqe_v3(void *hw_msg, const struct qm_queue_info *info,
+ 	__u32 type = sqe->dw9 & HZ_REQ_TYPE_MASK;
+ 	uintptr_t phy_in, phy_out, phy_ctxbuf;
+ 	struct hisi_zip_buf *buf = NULL;
+-	struct wd_queue *q = info->q;
+ 	struct wcrypto_comp_tag *tag;
++	__u32 ctx_status;
+ 	void *cache_data;
+ 	__u32 bit_cnt;
+ 	int ret;
+@@ -864,8 +892,32 @@ int qm_parse_zip_sqe_v3(void *hw_msg, const struct qm_queue_info *info,
+ 	if (usr && sqe->tag_l != usr)
+ 		return 0;
+ 
++	v5_stream_decomp = strstr(qinfo->hw_type, HISI_QM_API_VER5_BASE) &&
++			   recv_msg->stream_mode == WCRYPTO_COMP_STATEFUL &&
++			   recv_msg->op_type == WCRYPTO_INFLATE;
++
+ 	recv_msg->in_cons = sqe->consumed;
+ 	recv_msg->produced = sqe->produced;
++
++	if (v5_stream_decomp) {
++		ctx_status = sqe->isize & HZ_V5_CTX_STATUS_MASK;
++		if (ctx_status & HZ_V5_CTX_STATUS_DECOMP_DONE) {
++			recv_msg->status = WCRYPTO_DECOMP_END;
++		} else if (ctx_status && sqe->consumed == 0 && sqe->produced == 0) {
++			WD_ERR("v5 stream decomp error: ctx_status=0x%x!\n", ctx_status);
++			recv_msg->status = WD_EAGAIN;
++		} else if (ctx_status) {
++			WD_ERR("v5 stream decomp error: ctx_status=0x%x!\n", ctx_status);
++			recv_msg->status = WD_IN_EPARA;
++		} else {
++			recv_msg->status = 0;
++		}
++		if (recv_msg->ctx_buf)
++			*(__u32 *)recv_msg->ctx_buf = sqe->ctx_dw0;
++		recv_msg->checksum = sqe->checksum;
++		goto v5_skip_cache_process;
++	}
++
+ 	if (recv_msg->ctx_buf) {
+ 		*(__u32 *)recv_msg->ctx_buf = sqe->ctx_dw0;
+ 		*(__u32 *)(recv_msg->ctx_buf + CTX_PRIV1_OFFSET) = sqe->ctx_dw1;
+@@ -874,6 +926,7 @@ int qm_parse_zip_sqe_v3(void *hw_msg, const struct qm_queue_info *info,
+ 	recv_msg->isize = sqe->isize;
+ 	recv_msg->checksum = sqe->checksum;
+ 
++v5_skip_cache_process:
+ 	phy_in = DMA_ADDR(sqe->source_addr_h, sqe->source_addr_l);
+ 	drv_iova_unmap(q, recv_msg->src, (void *)phy_in, recv_msg->in_size);
+ 	if (recv_msg->ctx_buf) {
+@@ -884,6 +937,12 @@ int qm_parse_zip_sqe_v3(void *hw_msg, const struct qm_queue_info *info,
+ 			       MAX_CTX_RSV_SIZE);
+ 	}
+ 
++	if (v5_stream_decomp) {
++		phy_out = DMA_ADDR(sqe->dest_addr_h, sqe->dest_addr_l);
++		drv_iova_unmap(q, recv_msg->dst, (void *)phy_out, recv_msg->avail_out);
++		goto v5_end;
++	}
++
+ 	/*
+ 	 * The output mapping address needs to be released only when the internal buffer
+ 	 * is not enabled or hw is skipped.
+@@ -931,6 +990,7 @@ int qm_parse_zip_sqe_v3(void *hw_msg, const struct qm_queue_info *info,
+ 	if (buf && buf->pending_out)
+ 		copy_from_buf(recv_msg, buf);
+ 
++v5_end:
+ 	tag = (void *)(uintptr_t)recv_msg->udata;
+ 	if (tag && tag->priv && !info->sqe_fill_priv)
+ 		fill_priv_lz77_zstd(sqe, recv_msg);
+diff --git a/v1/drv/hisi_zip_udrv.h b/v1/drv/hisi_zip_udrv.h
+index 1037f43..f88cc65 100644
+--- a/v1/drv/hisi_zip_udrv.h
++++ b/v1/drv/hisi_zip_udrv.h
+@@ -126,6 +126,22 @@ struct hisi_zip_sqe_v3 {
+ #define HZ_STATUS_MASK 0xff
+ #define HZ_REQ_TYPE_MASK 0xff
+ 
++#define HZ_V5_CTX_BFINAL_MASK        0x03
++#define HZ_V5_CTX_BTYPE_MASK         0x0c
++#define HZ_V5_CTX_BFINAL_END         0x01
++#define HZ_V5_CTX_BFINAL_CONTINUE    0x02
++#define HZ_V5_CTX_STATUS_MASK        0xffff
++#define HZ_V5_CTX_INFO_CHECK_MASK    0xffff0000
++#define HZ_V5_CTX_STATUS_DECOMP_DONE    0x0001
++#define HZ_V5_CTX_STATUS_BTYPE_ERR       0x0002
++#define HZ_V5_CTX_STATUS_STORE_HEAD_ERR  0x0004
++#define HZ_V5_CTX_STATUS_STORE_DECOMP_ERR 0x0008
++#define HZ_V5_CTX_STATUS_STATIC_ERR      0x0010
++#define HZ_V5_CTX_STATUS_DYNAMIC_ERR     0x0020
++#define HZ_V5_CTX_STATUS_DYNAMIC_TBL_ERR 0x0040
++#define HZ_V5_CTX_STATUS_CRC_ALIGN_ERR   0x0080
++#define HZ_V5_CTX_STATUS_CRC_DATA_ERR    0x0100
++
+ int qm_fill_zip_sqe(void *smsg, struct qm_queue_info *info, __u16 i);
+ int qm_parse_zip_sqe(void *hw_msg, const struct qm_queue_info *info,
+ 		     __u16 i, __u16 usr);
+-- 
+2.47.0.windows.2
+
