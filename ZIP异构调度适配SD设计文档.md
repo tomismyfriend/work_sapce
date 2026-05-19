@@ -1154,3 +1154,14 @@ Session阶段:
 | idx_list valid_count | > 0 |
 | 基础业务 | 压缩/解压缩正常 |
 | 性能 | 不低于Origin版本 |
+
+
+迭代涉及结构体：
+类别	数量	结构体
+核心修改	5	wd_init_attrs, wd_ctx_config_internal, wd_ctx_internal, wd_sched, wd_sched_params
+调度域(sd)	3	wd_sched_key, wd_sched_key_domain, wd_sched_domain_idx_cache
+ctx标记	2	wd_ctx, wd_ctx_nums
+驱动	1	wd_alg_driver
+用户接口	2	wd_comp_sess_setup, wd_comp_sess
+配置参数	2	wd_ctx_params, wd_ctx_config
+框架内部	2	wd_sched_ctx, wd_sched_ctx_domain
