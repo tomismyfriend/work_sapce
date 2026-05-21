@@ -33,3 +33,32 @@ static int chunk_inflate(void *in, size_t in_sz, void *out, size_t *out_sz,
 		COMP_TST_PRT("zlib inflateInit: %d\n", ret);
 		return -EINVAL;
 	}
+
+
+
+static void qm_check_decomp_blk_nostart(struct wcrypto_comp_msg *recv_msg,
+                                         struct hisi_zip_sqe_v3 *sqe,
+                                         __u16 ctx_st,
+                                         __u16 ctx_bfinal,
+                                         __u32 ctx_win_len)
+{
+	__u32 bit_cnt;
+	void *cache_data;
+	int ret;
+	if (ctx_st == HW_DECOMPING_NO_SPACE && recv_msg->in_size == recv_msg->in_cons &&
+	    ctx_bfinal && (sqe->ctx_dw1 & HZ_CTX_STORE_MASK))
+		recv_msg->status = WCRYPTO_DECOMP_BLK_NOSTART;
+	bit_cnt = (sqe->ctx_dw0 & CTX_HEAD_BIT_CNT_MASK) >> CTX_HEAD_BIT_CNT_SHIFT;
+	if (!recv_msg->status && bit_cnt && ctx_st == HW_DECOMP_BLK_NOSTART &&
+	    recv_msg->alg_type == WCRYPTO_RAW_DEFLATE) {
+		ctx_win_len = WIN_LEN_ALIGN(ctx_win_len);
+		cache_data = recv_msg->ctx_buf + CTX_BUFFER_OFFSET +
+			     CTX_BLOCKST_OFFSET + ctx_win_len;
+		ret = check_huffman_block_integrity(cache_data, bit_cnt);
+		if (ret < 0) {
+			WD_ERR("invalid: unable to parse data!\n");
+			recv_msg->status = WD_IN_EPARA;
+		} else if (ret)
+			recv_msg->status = WCRYPTO_DECOMP_BLK_NOSTART;
+	}
+}
