@@ -1,0 +1,86 @@
+1. 基本压缩测试
+# zlib 压缩（同步模式）
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 5 --init2
+# gzip 压缩
+sudo uadk_tool benchmark --alg gzip --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 5 --init2
+# 不同数据包大小测试
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync \
+    --pktlen 1024 --seconds 5 --init2    # 1KB
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync \
+    --pktlen 65536 --seconds 5 --init2   # 64KB
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync \
+    --pktlen 1048576 --seconds 5 --init2 # 1MB
+---
+2. 基本解压测试
+# zlib 解压（需要先压缩生成文件）
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 1 --sync \
+    --pktlen 4096 --seconds 5 --init2
+# gzip 解压
+sudo uadk_tool benchmark --alg gzip --mode sva --opt 1 --sync \
+    --pktlen 4096 --seconds 5 --init2
+---
+3. 多线程测试（验证异构调度）
+# 4线程、8ctx 测试（异构调度场景）
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 5 --thread 4 --ctxnum 8 --init2
+# 8线程、16ctx 测试
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 5 --thread 8 --ctxnum 16 --init2
+# 极端压力测试
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 10 --thread 16 --ctxnum 32 --init2
+---
+4. 异步模式测试
+# 异步压缩
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --async \
+    --pktlen 4096 --seconds 5 --ctxnum 4 --init2
+# 异步解压
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 1 --async \
+    --pktlen 4096 --seconds 5 --ctxnum 4 --init2
+---
+5. 流模式测试
+# 流压缩 (--opt 2)
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 2 --sync \
+    --pktlen 4096 --seconds 5 --init2
+# 流解压 (--opt 3)
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 3 --sync \
+    --pktlen 4096 --seconds 5 --init2
+---
+6. 不同算法测试
+# deflate 算法
+sudo uadk_tool benchmark --alg deflate --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 5 --init2
+# lz4 算法
+sudo uadk_tool benchmark --alg lz4 --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 5 --init2
+# lz77_zstd 算法
+sudo uadk_tool benchmark --alg lz77_zstd --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 5 --init2
+---
+7. 性能对比测试
+# 查看算法列表
+sudo uadk_tool benchmark --alglist
+# 对比不同算法性能
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync --pktlen 4096 --seconds 5 --init2
+sudo uadk_tool benchmark --alg gzip --mode sva --opt 0 --sync --pktlen 4096 --seconds 5 --init2
+sudo uadk_tool benchmark --alg deflate --mode sva --opt 0 --sync --pktlen 4096 --seconds 5 --init2
+---
+8. 延迟测试
+# 测试单个包的处理延迟
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 5 --latency --init2
+---
+9. 多进程测试
+# 4进程测试
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 5 --multi 4 --init2
+# 8进程测试
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 5 --multi 8 --init2
+---
+10. 指定设备测试
+# 指定特定设备
+sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 5 --device hisi_zip-1 --init2
