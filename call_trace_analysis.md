@@ -2599,3 +2599,137 @@ while (QM_CQE_PHASE(cqe) == qp->qp_status.cqc_phase) { ... }
 - 回答：“您说得对，API 契约确实不保证。但在我们的实际部署环境（特定的 ARM64 内核配置）中，底层分配器（如开启了 init_on_alloc=1 或 CMA 的特定行为）实际返回的是全 0。我们并非‘盲目依赖’，而是基于实际运行环境的客观事实。当然，为了代码的绝对鲁棒性，我们后续会补上显式的 memset，但这属于防御性编程的优化，而不是导致此次 Call Trace 的根因。因为即使补了 memset，如果硬件 DMA 引擎跑飞乱写 CQE，依然会崩溃。”
 2. 如果被问到：“那 ffff0800007f0000 这个指针到底是怎么来的？”
 - 回答：“这个值看起来像是一个 DMA 物理地址或者 MMIO 地址，而不是合法的 Slab 虚拟地址。这强烈暗示硬件 DMA 写错了位置，或者PCIe 总线发生了数据损坏，导致 SQE 的 dw26/dw27 被覆盖成了非 CPU 写入的值。这正是我们需要硬件团队协助抓取 PCIe TLP 包或检查 FPGA 状态机的原因。”
+
+
+
+概述
+本文档从内核驱动开发的专业视角，深度剖析 insmod hisi_zip.ko 触发 Crypto 子系统自测试（以 deflate 算法为例）的完整业务执行流程。
+整个流程在逻辑上严格划分为两大阶段：
+1. Init 阶段（资源准备与硬件上下文配置）：构建软件管理结构，分配硬件交互所需的 DMA 内存，并通过 Mailbox 将队列上下文下发至硬件，完成状态机的初始隔离。
+2. 业务流程阶段（自测试任务执行与数据流转）：准备测试数据，通过流式 DMA 映射建立物理地址通道，构建并提交 SQE，处理硬件中断，并通过严格的 Phase 校验和 Tag 还原机制完成异步回调。
+阶段一：Init 阶段 (资源准备与硬件上下文配置)
+此阶段由测试框架调用 crypto_alloc_acomp("deflate", ...) 触发，核心入口为 hisi_zip_acomp_init()。
+1.1 TFM 与驱动上下文分配 (普通内存)
+- 动作：Crypto 框架分配 Transform (TFM) 句柄 struct crypto_acomp，并为其分配驱动私有上下文 struct hisi_zip_ctx。
+- 内存属性：普通内核内存（通过 kzalloc 分配，已清零），CPU 通过虚拟地址直接访问。
+1.2 QP 创建与 QP 级 DMA 内存分配 (一致性 DMA 内存)
+- 动作：调用 hisi_zip_ctx_init() -> zip_create_qps() -> hisi_qm_create_qp() -> hisi_qp_memory_init()。为压缩和解压分别创建一个 Queue Pair (QP)。
+- 内存分配：调用 dma_alloc_coherent() 为每个 QP 分配一块物理连续的 DMA 内存（约 144KB）。该内存被切分为：
+- SQE 数组：struct hisi_zip_sqe (128 Bytes × 1024)，用于存放提交给硬件的任务描述。
+- CQE 数组：struct qm_cqe (16 Bytes × 1024)，用于存放硬件返回的完成状态。
+- 初始状态保证：在当前 ARM64 平台的底层内存分配器（如 Buddy 系统或配置了 init_on_alloc 的 CMA）实现中，dma_alloc_coherent 实际返回的物理页已被清零。因此，所有 CQE 的初始内容（包括关键的 w7.phase 位）均为 0。
+1.3 请求跟踪队列与 SGL Pool 分配
+- 请求跟踪队列 (普通内存)：调用 hisi_zip_create_req_q()，使用 kcalloc 分配 1024 个 struct hisi_zip_req 结构体数组（已清零），并使用 bitmap_zalloc 分配状态位图，用于在异步流程中跟踪任务上下文。
+- *SGL Pool (一致性 DMA 内存)*：调用 hisi_zip_create_sgl_pool() -> hisi_acc_create_sgl_pool()，使用 dma_alloc_coherent 分配硬件格式的 Scatter-Gather List 描述符池 (struct hisi_acc_hw_sgl)，用于将内核的 scatterlist 转换为硬件可识别的物理地址链表。
+1.4 硬件上下文下发与状态机初始化
+- 软件状态初始化：在 qm_init_qp_status() 中，显式设置软件侧的完成队列相位 qp_status.cqc_phase = 1 (true)，并初始化 cq_head = 0。
+- 硬件上下文下发：调用 hisi_qm_start_qp() -> qm_qp_ctx_cfg()。
+- 构造 struct qm_sqc 和 struct qm_cqc，填入 SQ/CQ 的 DMA 物理基地址、队列深度，并显式设定硬件侧的初始 Phase 计数器为 1。
+- 通过 Mailbox 命令 (QM_MB_CMD_SQC / QM_MB_CMD_CQC) 将上下文写入硬件内部寄存器。
+- 状态机隔离确认：此时，所有 CQE 内存中的 Phase 为 0，而软件期望的 cqc_phase 和硬件写入的 Phase 均为 1。0 ≠ 1，这在物理和逻辑层面确保了在硬件写入第一个真实 CQE 之前，CPU 的中断处理循环绝对不会误读任何 CQE。
+阶段二：业务流程阶段 (自测试任务执行与数据流转)
+此阶段由 Crypto 测试框架 test_acomp() 发起，执行实际的压缩/解压测试用例。
+2.1 测试数据准备与 Request 构建 (普通内存)
+- 动作：测试框架使用 kmemdup 和 kmalloc 分配输入数据 input_vec 和输出缓冲区 output。
+- 构建 Request：初始化 struct scatterlist 指向上述数据缓冲区，分配 struct acomp_req，绑定数据长度和完成回调函数 (crypto_req_done)。
+2.2 任务提交：流式 DMA 映射与 SQE 构建
+- 动作：调用 crypto_acomp_compress() -> hisi_zip_acompress() -> hisi_zip_do_work()。
+- 分配跟踪槽位：从 req_q 数组中通过 Bitmap 申请一个空闲的 hisi_zip_req 槽位，记录上层 acomp_req 指针。
+- 流式 DMA 映射：
+- 调用 hisi_acc_sg_buf_map_to_hw_sgl() (内部封装 dma_map_sg)。
+- 将 scatterlist 中的虚拟地址转换为 DMA 物理地址，并执行 Cache 维护（源数据 Flush，目标数据 Invalidate）。
+- 将映射后的物理地址填入 SGL Pool 中的 hisi_acc_hw_sgl 描述符，并记录该描述符的 DMA 物理地址到 req->dma_src/dst。
+- 构建 SQE 与 Tag 绑定：
+- 在栈上构造 struct hisi_zip_sqe 并清零。
+- 填入源/目标 SGL 描述符的 DMA 物理地址、数据长度等硬件控制字段。
+- 核心上下文传递：调用 hisi_zip_fill_tag()，将 hisi_zip_req 的内核虚拟地址指针拆分，硬编码写入 SQE 的 dw26 (低 32 位) 和 dw27 (高 32 位)。此 Tag 将随 SQE 进入 DMA 内存，硬件执行时原样保留。
+- 提交硬件：调用 hisi_qp_send()，将栈上的 SQE memcpy 到 QP 的 SQ DMA 内存中，更新 sq_tail，并写入 Doorbell 寄存器敲门铃通知硬件。
+2.3 硬件执行：DMA 数据搬运与状态回填
+- 硬件自主 DMA：硬件通过 SQC 找到 SQ -> 读取 SQE -> 解析 SGL 描述符 -> DMA 读取 input_vec 真实数据 -> 执行压缩算法 -> DMA 写入结果到 output 缓冲区。
+- 状态回填与通知：
+- 硬件回填 SQE 的 status (dw3) 和 produced (产出长度) 字段，*不修改 dw26/dw27 (Tag)*。
+- 硬件在 CQ DMA 内存中写入 CQE：填入 sq_head (当前完成的 SQE 索引) 和 w7.phase = 1。
+- 硬件写入 EQE 并触发 MSI 中断。
+2.4 中断处理：Phase 校验与 CQE 消费
+- 动作：CPU 收到中断，执行 qm_eq_irq() -> queue_work()，随后 kworker 线程执行 qm_work_process() -> qm_poll_req_cb()。
+- 严格的 Phase 校验：
+while (QM_CQE_PHASE(cqe) == qp->qp_status.cqc_phase) { ... }
+- 处理 CQE0：读取 CQE0，其 phase = 1，与 cqc_phase (1) 匹配。提取 sq_head = 0，定位到 SQE0。调用驱动回调 qp->req_cb(qp, sqe_ptr)。推进 cq_head 至 1。
+- 拦截 CQE1：读取 CQE1。由于 CQE1 从未被硬件写入，且 Init 阶段 DMA 内存已清零，其 phase = 0。0 ≠ 1，校验失败，循环安全退出。
+2.5 完成回调：上下文还原与资源清理
+- 动作：执行 hisi_zip_acomp_cb(qp, sqe)。
+- 上下文还原：通过宏 GET_REQ_FROM_SQE(sqe)，从 SQE 的 dw26/dw27 中拼装还原出合法的 hisi_zip_req 虚拟指针，进而获取上层的 acomp_req。
+- 状态读取与 DMA 解映射：
+- 读取 SQE 的 status 和 produced 字段，更新 acomp_req->dlen。
+- 调用 hisi_acc_sg_buf_unmap() (内部封装 dma_unmap_sg)，执行 Cache 失效操作，确保 CPU 后续读取 output 时能获取硬件 DMA 写入的最新数据。
+- 唤醒与清理：调用 acomp_request_complete() 唤醒阻塞的测试线程；清除 Bitmap，释放 hisi_zip_req 槽位。测试线程唤醒后验证数据正确性，进入下一个测试用例或结束测试。
+核心数据结构跨内存流转图
+========================= 阶段 1：任务准备与提交 (CPU 侧) =========================
+
+[CPU 普通内存 (有 Cache)]               [一致性 DMA 内存 (无 Cache)]           [硬件]
+
+ [acomp_req]
+   ├─ src ──> [scatterlist] ─┐
+   ├─ dst ──> [scatterlist] ─┼─(dma_map_sg)─> [hisi_acc_hw_sgl (源/目标)]
+   └─ slen/dlen              │                   ├─ sge.buf = 数据物理地址
+                             │                   └─ sge.len = 数据长度
+ [hisi_zip_req] <────────────┘
+   ├─ req ──> [acomp_req]    │
+   ├─ hw_src/hw_dst ─────────┼──────────────────> (指向 SGL 描述符)
+   └─ dma_src/dma_dst ───────┼──────────────────> (SGL 描述符的 DMA 物理地址)
+                             │
+                             └─(填充 SQE)─> [hisi_zip_sqe N]
+                                              ├─ source/dest = SGL DMA 地址
+                                              ├─ input_length = slen
+                                              └─ dw26/dw27 = hisi_zip_req 指针
+                                                              │
+                                                              │ (memcpy + 敲门铃)
+                                                              v
+
+========================= 阶段 2：硬件执行 (硬件自主 DMA) =========================
+
+[CPU 普通内存]                          [一致性 DMA 内存]                      [硬件引擎]
+
+ [input_vec] <............................................. (DMA 读源数据) ... [读 SQE]
+ [output]    .............................................. (DMA 写目标数据) .. [读 SGL]
+                                                                              [执行压缩]
+ [hisi_zip_sqe N] <....................................... (回填状态/长度) .. [回填 SQE]
+   ├─ status = 0 (成功)
+   └─ produced = 压缩后长度
+
+ [qm_cqe N] <............................................... (写入完成通知) .. [写 CQE]
+   ├─ sq_head = N
+   └─ w7.phase = 1
+
+ [qm_eqe] <................................................... (触发事件) .... [写 EQE]
+                                                                              [发 MSI 中断]
+
+========================= 阶段 3：中断处理与回调 (CPU 侧) =========================
+
+[CPU 普通内存]                          [一致性 DMA 内存]                      [硬件]
+
+ [qm_eq_irq] <───────────────────────────────────────────────────────────── (收到中断)
+   └─ queue_work()
+       │
+       v
+ [qm_work_process]
+   └─ qm_poll_req_cb()
+       │ (读 CQE.w7.phase == 1)
+       │ (读 CQE.sq_head = N)
+       v
+ [hisi_zip_acomp_cb] <──────────────────────────────────── (传入 SQE N 地址)
+   │
+   ├─ req = GET_REQ(SQE.dw26/27) ──> [hisi_zip_req]
+   │                                    ├─ req ──> [acomp_req]
+   │                                    └─ qp_ctx
+   │
+   ├─ dlen = SQE.produced
+   │
+   ├─ dma_unmap_sg() <─(失效Cache, 确保读到最新数据)─> [output]
+   │
+   └─ acomp_request_complete() ──> 唤醒测试线程
+总结：软件流程的安全性与完备性
+通过上述流程剖析，Hisi Zip 驱动在业务执行层面展现了严密的工程设计：
+1. 状态机隔离完备：依赖底层 DMA 分配器的实际清零特性与显式的 Phase 初始化（软件 cqc_phase=1，CQE 内存 phase=0），在硬件写入真实数据前，从物理层面阻断了 CPU 误读未初始化 CQE 的可能。
+2. 上下文传递闭环：通过将软件上下文指针（hisi_zip_req）硬编码至 SQE 的 Tag 字段（dw26/dw27），利用硬件 DMA 的“透传”特性，实现了跨异步中断的精准上下文还原，避免了复杂的全局查表操作。
+3. 内存一致性保障：严格遵循 DMA API 规范，在数据提交前执行 dma_map_sg (Flush Cache)，在数据接收后执行 dma_unmap_sg (Invalidate Cache)，确保了 CPU 与硬件之间数据视图的绝对一致
