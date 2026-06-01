@@ -2477,3 +2477,42 @@ while (QM_CQE_PHASE(cqe) == qp->qp_status.cqc_phase)
 - 动作：测试线程被唤醒。
 - 验证：对比 output 缓冲区的内容和长度与预期测试向量是否一致。
 - 清理：释放 acomp_req、input_vec、output，进入下一个测试用例。所有用例完成后，调用 crypto_free_acomp 触发 hisi_zip_acomp_exit，释放所有 Init 阶段分配的资源。
+
+
+
+
+七、 数据结构流转总结图
+[CPU 普通内存]                  [一致性 DMA 内存]                 [硬件]
+      |                               |                            |
+  acomp_req                           |                            |
+      |                               |                            |
+  scatterlist                         |                            |
+      |                               |                            |
+  hisi_zip_req <--------------------> |                            |
+      | (指针存入 dw26/dw27)          |                            |
+      v                               v                            |
+  dma_map_sg() ----(物理地址)----> hisi_acc_hw_sgl                 |
+                                      | (DMA地址存入 source/dest)  |
+                                      v                            |
+                                  hisi_zip_sqe -----------------> [读 SQE]
+                                      |                            |
+                                      |                            v
+                                      |                        [执行压缩]
+                                      |                            |
+                                      | <----------------------- [回填 SQE]
+                                      |                            |
+                                      | <----------------------- [写 CQE]
+                                      |                            |
+                                      | <----------------------- [写 EQE + 中断]
+                                      |                            |
+  qm_work_process <-------------------|                            |
+      | (读 CQE.sq_head)              |                            |
+      v                               |                            |
+  hisi_zip_acomp_cb                   |                            |
+      | (从 SQE.dw26/27 提取 req)     |                            |
+      v                               |                            |
+  dma_unmap_sg() <-(失效Cache)--------|                            |
+      |                               |                            |
+  acomp_req->dlen = SQE.produced      |                            |
+      |                               |                            |
+  complete() 唤醒测试线程             |                            |
