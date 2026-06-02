@@ -358,3 +358,124 @@ sudo uadk_tool benchmark --alg lz4 --mode sva --opt 1 --sync \
 ✅ 架构一致：与hisi_zip、hisi_sec完全一致的驱动架构  
 ✅ 易于扩展：添加其他软算只需新增.so文件  
 ✅ 故障隔离：软算失败不影响硬件驱动
+
+
+
+Makefile.am 修改位置详解
+一、完整修改位置
+需要修改 4个位置：
+位置1：第32行 - 添加驱动库声明
+修改前：
+uadk_drivers_LTLIBRARIES=libhisi_sec.la libisa_ce.la libisa_sve.la
+修改后：
+uadk_drivers_LTLIBRARIES=libhisi_sec.la libisa_ce.la libisa_sve.la libsoft_lz4.la
+位置2：第58行之后 - 添加源文件定义
+在第58行（libisa_sve_la_SOURCES 定义结束）之后，第59行（endif）之前添加：
+libsoft_lz4_la_SOURCES=drv/soft_lz4.c drv/soft_lz4.h \
+		drv/wd_drv.h drv/wd_drv.c
+位置3：第77行之后 - 添加静态库配置
+在第77行（libisa_sve_la_DEPENDENCIES）之后，第79行（else）之前添加：
+libsoft_lz4_la_LIBADD = $(libwd_la_OBJECTS) $(libwd_crypto_la_OBJECTS)
+libsoft_lz4_la_DEPENDENCIES = libwd.la libwd_crypto.la
+位置4：第101行之后 - 添加动态库配置
+在第101行（libisa_sve_la_DEPENDENCIES）之后，第103行（endif）之前添加：
+libsoft_lz4_la_LIBADD= -lwd -lwd_crypto -ldl
+libsoft_lz4_la_LDFLAGS=$(UADK_VERSION)
+libsoft_lz4_la_DEPENDENCIES= libwd.la libwd_crypto.la
+二、完整修改后的 Makefile.am 片段
+# 第32行
+uadk_drivers_LTLIBRARIES=libhisi_sec.la libisa_ce.la libisa_sve.la libsoft_lz4.la
+
+libwd_la_SOURCES=wd.c wd_mempool.c wd_bmm.c wd_bmm.h wd.h wd_alg.c wd_alg.h	\
+		lib/crypto/aes.c lib/crypto/sm4.c lib/crypto/galois.c
+
+libwd_crypto_la_SOURCES=wd_cipher.c wd_cipher.h wd_cipher_drv.h \
+			wd_aead.c wd_aead.h wd_aead_drv.h \
+			wd.c wd.h wd_alg.h \
+			wd_util.c wd_util.h \
+			wd_sched.c wd_sched.h
+
+libhisi_sec_la_SOURCES=drv/hisi_sec.c drv/hisi_qm_udrv.c \
+		lib/crypto/aes.c lib/crypto/sm4.c lib/crypto/galois.c \
+		hisi_qm_udrv.h wd_cipher_drv.h wd_aead_drv.h aes.h sm4.h galois.h \
+		drv/wd_drv.h drv/wd_drv.c
+
+if ARCH_ARM64
+libisa_ce_la_SOURCES=arm_arch_ce.h drv/isa_ce_sm3.c drv/isa_ce_sm3_armv8.S isa_ce_sm3.h \
+		drv/isa_ce_sm4.c drv/isa_ce_sm4_armv8.S drv/isa_ce_sm4.h wd_util.c wd_util.h \
+		drv/wd_drv.h drv/wd_drv.c
+
+libisa_sve_la_SOURCES=drv/hash_mb/hash_mb.c wd_digest_drv.h drv/hash_mb/hash_mb.h \
+		drv/hash_mb/sm3_sve_common.S drv/hash_mb/sm3_mb_asimd_x1.S \
+		drv/hash_mb/sm3_mb_asimd_x4.S drv/hash_mb/sm3_mb_sve.S \
+		drv/hash_mb/md5_sve_common.S drv/hash_mb/md5_mb_asimd_x1.S \
+		drv/hash_mb/md5_mb_asimd_x4.S drv/hash_mb/md5_mb_sve.S \
+		drv/wd_drv.h drv/wd_drv.c
+
+# 位置2：在这里添加（第58行之后）
+libsoft_lz4_la_SOURCES=drv/soft_lz4.c drv/soft_lz4.h \
+		drv/wd_drv.h drv/wd_drv.c
+endif
+
+if WD_STATIC_DRV
+AM_CFLAGS += -DWD_STATIC_DRV -fPIC
+AM_CFLAGS += -DWD_NO_LOG
+
+libwd_la_LIBADD = $(libwd_la_OBJECTS) -ldl -lnuma
+
+libwd_crypto_la_LIBADD = -lwd -ldl -lnuma -lm -lpthread
+libwd_crypto_la_DEPENDENCIES = libwd.la
+
+libhisi_sec_la_LIBADD = $(libwd_la_OBJECTS) $(libwd_crypto_la_OBJECTS)
+libhisi_sec_la_DEPENDENCIES = libwd.la libwd_crypto.la
+
+libisa_ce_la_LIBADD = $(libwd_la_OBJECTS) $(libwd_crypto_la_OBJECTS)
+libisa_ce_la_DEPENDENCIES = libwd.la libwd_crypto.la
+
+libisa_sve_la_LIBADD = $(libwd_la_OBJECTS) $(libwd_crypto_la_OBJECTS)
+libisa_sve_la_DEPENDENCIES = libwd.la libwd_crypto.la
+
+# 位置3：在这里添加（第77行之后）
+libsoft_lz4_la_LIBADD = $(libwd_la_OBJECTS) $(libwd_crypto_la_OBJECTS)
+libsoft_lz4_la_DEPENDENCIES = libwd.la libwd_crypto.la
+
+else
+UADK_WD_SYMBOL= -Wl,--version-script,$(top_srcdir)/libwd.map
+UADK_CRYPTO_SYMBOL= -Wl,--version-script,$(top_srcdir)/libwd_crypto.map
+UADK_V1_SYMBOL= -Wl,--version-script,$(top_srcdir)/v1/libwd.map
+
+libwd_la_LDFLAGS=$(UADK_VERSION) $(UADK_WD_SYMBOL) $(UADK_V1_SYMBOL)
+libwd_la_LIBADD= -ldl -lnuma
+
+libwd_crypto_la_LIBADD= -lwd -ldl -lnuma
+libwd_crypto_la_LDFLAGS=$(UADK_VERSION) $(UADK_CRYPTO_SYMBOL) -lpthread
+libwd_crypto_la_DEPENDENCIES= libwd.la
+
+libhisi_sec_la_LIBADD= -lwd -lwd_crypto
+libhisi_sec_la_LDFLAGS=$(UADK_VERSION)
+libhisi_sec_la_DEPENDENCIES= libwd.la libwd_crypto.la
+
+libisa_ce_la_LIBADD= -lwd -lwd_crypto
+libisa_ce_la_LDFLAGS=$(UADK_VERSION)
+libisa_ce_la_DEPENDENCIES= libwd.la libwd_crypto.la
+
+libisa_sve_la_LIBADD= -lwd -lwd_crypto
+libisa_sve_la_LDFLAGS=$(UADK_VERSION)
+libisa_sve_la_DEPENDENCIES= libwd.la libwd_crypto.la
+
+# 位置4：在这里添加（第101行之后）
+libsoft_lz4_la_LIBADD= -lwd -lwd_crypto -ldl
+libsoft_lz4_la_LDFLAGS=$(UADK_VERSION)
+libsoft_lz4_la_DEPENDENCIES= libwd.la libwd_crypto.la
+
+endif	# WD_STATIC_DRV
+三、修改总结
+位置	行号	添加内容
+位置1	第32行	libsoft_lz4.la 到 uadk_drivers_LTLIBRARIES
+位置2	第58行后	libsoft_lz4_la_SOURCES 定义
+位置3	第77行后	静态库的 LIBADD 和 DEPENDENCIES
+位置4	第101行后	动态库的 LIBADD、LDFLAGS 和 DEPENDENCIES
+四、注意事项
+1. 位置2必须在 if ARCH_ARM64 和 endif 之间，因为 soft_lz4 不依赖 ARM64 架构，也可以放在 endif 之后
+2. 位置3和位置4分别在 if WD_STATIC_DRV 的两个分支中，确保静态和动态编译都能工作
+3. 动态库需要 -ldl，因为 soft_lz4 使用 dlopen 加载 liblz4.so.1
