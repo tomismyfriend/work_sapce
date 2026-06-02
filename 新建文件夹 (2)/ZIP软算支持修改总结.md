@@ -176,3 +176,81 @@ sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync \
 2. 软算性能不如硬件，仅作为 fallback
 3. LZ77-ZSTD 当前返回错误，待实现
 4. 异步模式下的软算需要额外处理（当前只支持同步）
+
+
+
+
+
+软算测试调试打印代码
+1. soft_lz4.c 的调试打印
+int soft_lz4_decompress(struct wd_comp_msg *msg)
+{
+	int ret;
+
+	WD_INFO("soft_lz4_decompress: enter\n");
+
+	if (!g_decompress_fn) {
+		WD_ERR("soft_lz4: not initialized!\n");
+		return -WD_EINVAL;
+	}
+
+	if (msg->req.src_len == 0) {
+		WD_ERR("soft_lz4: src_len is zero!\n");
+		return -WD_EINVAL;
+	}
+
+	WD_INFO("soft_lz4_decompress: src=%p, dst=%p, src_len=%u, dst_len=%u\n",
+		msg->req.src, msg->req.dst, msg->req.src_len, msg->req.dst_len);
+
+	ret = g_decompress_fn(
+		(const char *)msg->req.src,
+		(char *)msg->req.dst,
+		msg->req.src_len,
+		msg->req.dst_len);
+
+	WD_INFO("soft_lz4_decompress: LZ4_decompress_safe returned %d\n", ret);
+
+	if (ret < 0) {
+		WD_ERR("soft_lz4: decompress failed, ret=%d\n", ret);
+		return -WD_EINVAL;
+	}
+
+	msg->produced = ret;
+	msg->in_cons = msg->req.src_len;
+	
+	WD_INFO("soft_lz4_decompress: success, produced=%u, in_cons=%u\n",
+		msg->produced, msg->in_cons);
+	
+	return 0;
+}
+2. hisi_comp.c 的调试打印
+static int hisi_zip_comp_send(handle_t ctx, void *comp_msg)
+{
+	struct hisi_qp *qp = wd_ctx_get_priv(ctx);
+	struct wd_comp_msg *msg = comp_msg;
+	handle_t h_qp = (handle_t)qp;
+	struct hisi_zip_sqe sqe = {0};
+	__u16 count = 0;
+	int ret;
+
+	/* Check if software fallback is needed */
+	if (msg->alg_type == WD_LZ4 && msg->req.op_type == WD_DIR_DECOMPRESS) {
+		/* LZ4 hardware does not support decompression, use software */
+		WD_INFO("lz4 decompress: use soft_lz4 fallback\n");
+		WD_INFO("before soft_lz4_decompress: src=%p, dst=%p, src_len=%u, dst_len=%u\n",
+			msg->req.src, msg->req.dst, msg->req.src_len, msg->req.dst_len);
+		
+		ret = soft_lz4_decompress(msg);
+		
+		WD_INFO("after soft_lz4_decompress: ret=%d, status=%u\n", ret, msg->req.status);
+		
+		if (ret) {
+			msg->req.status = WD_IN_EPARA;
+			return ret;
+		}
+		msg->req.status = 0;
+		return 0;
+	}
+
+	// ... 后续硬件处理代码 ...
+}
