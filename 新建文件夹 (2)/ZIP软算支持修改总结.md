@@ -254,3 +254,40 @@ static int hisi_zip_comp_send(handle_t ctx, void *comp_msg)
 
 	// ... 后续硬件处理代码 ...
 }
+
+
+修改 drv/hisi_comp.c（在调用 soft_lz4_decompress 之前加打印）：
+if (msg->alg_type == WD_LZ4 && msg->req.op_type == WD_DIR_DECOMPRESS) {
+    printf("[HISI_COMP] lz4 decompress: use soft_lz4 fallback\n");
+    printf("[HISI_COMP] src=%p, dst=%p, src_len=%u, dst_len=%u\n",
+           msg->req.src, msg->req.dst, msg->req.src_len, msg->req.dst_len);
+    fflush(stdout);
+    
+    ret = soft_lz4_decompress(msg);
+    
+    printf("[HISI_COMP] after soft_lz4_decompress: ret=%d\n", ret);
+    fflush(stdout);
+    // ...
+}
+修改 drv/soft_lz4.c（在调用 LZ4 之前加打印）：
+int soft_lz4_decompress(struct wd_comp_msg *msg)
+{
+    printf("[SOFT_LZ4] enter\n");
+    fflush(stdout);
+    
+    // ... 前面的检查 ...
+    
+    printf("[SOFT_LZ4] calling LZ4_decompress_safe(src_len=%u, dst_len=%u)...\n",
+           msg->req.src_len, msg->req.dst_len);
+    fflush(stdout);
+    
+    ret = g_decompress_fn(
+        (const char *)msg->req.src,
+        (char *)msg->req.dst,
+        msg->req.src_len,
+        msg->req.dst_len);
+        
+    printf("[SOFT_LZ4] returned %d\n", ret);
+    fflush(stdout);
+    // ...
+}
