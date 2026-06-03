@@ -745,3 +745,45 @@ wd_comp_init 现在完美呈现了 UADK V1 初始化的标准三步曲：Phase 1
 3. 极易扩展与测试：
 如果未来 ZIP 模块增加了新的算法（比如 "lz5"），只需要在 wd_comp_discover_and_aggregate_drvs 的 zip_algs 数组中加一个字符串即可，完全不会干扰到初始化的核心状态机。
 这种“核心状态机 + 独立策略函数”的设计模式，是大型 C 语言项目（如 Linux Kernel、UADK）中最推崇的代码组织方式！
+
+
+static int wd_comp_discover_drvs(struct wd_alg_driver ***drv_array, __u32 *drv_count)
+{
+    const char *zip_algs[] = {"zlib", "gzip", "deflate", "lz77_zstd", "lz4", "lz77_only"};
+    
+    // ⭐ 使用简单的 drv_list 作为栈上中转站
+    struct wd_alg_driver *drv_list[WD_COMP_ALG_MAX] = {0}; 
+    __u32 count = 0;
+    int i, ret;
+
+    for (i = 0; i < WD_COMP_ALG_MAX; i++) {
+        struct wd_alg_driver **tmp = NULL;
+        __u32 tmp_cnt = 0;
+        
+        ret = wd_get_drv_array(zip_algs[i], TASK_HW, "hisi_zip", &tmp, &tmp_cnt);
+        if (ret == 0 && tmp_cnt > 0) {
+            drv_list[count++] = tmp[0]; // 存入简单的 drv_list
+        }
+        
+        if (tmp) {
+            free(tmp);
+        }
+    }
+
+    if (count == 0) {
+        WD_ERR("failed to discover any valid ZIP drivers!\n");
+        return -WD_ENODEV;
+    }
+
+    *drv_array = calloc(count, sizeof(struct wd_alg_driver *));
+    if (!(*drv_array)) {
+        return -WD_ENOMEM;
+    }
+
+    // 从 drv_list 拷贝到堆内存
+    memcpy(*drv_array, drv_list, count * sizeof(struct wd_alg_driver *));
+    *drv_count = count;
+    
+    WD_INFO("discovered %u ZIP drivers for V1 init\n", count);
+    return 0;
+}
