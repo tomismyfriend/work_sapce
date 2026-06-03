@@ -617,3 +617,131 @@ out_clear_init:
     wd_alg_clear_init(&wd_comp_setting.status);
     return ret;
 }
+
+
+我们在 wd_comp.c 中新增一个静态（static）辅助函数，专门负责 ZIP 驱动的聚合发现：
+/**
+ * wd_comp_discover_and_aggregate_drvs - Discover and aggregate all ZIP drivers.
+ * @drv_array: Output pointer to the aggregated driver array (allocated, caller must free).
+ * @drv_count: Output pointer to the number of aggregated drivers.
+ *
+ * This function iterates through all supported ZIP algorithms, queries the
+ * framework for their specific driver instances, and aggregates them into
+ * a single array to support heterogeneous scheduling in V1 mode.
+ *
+ * Return: 0 on success, negative error code on failure.
+ */
+static int wd_comp_discover_and_aggregate_drvs(struct wd_alg_driver ***drv_array, 
+                                               __u32 *drv_count)
+{
+    const char *zip_algs[] = {"zlib", "gzip", "deflate", "lz77_zstd", "lz4", "lz77_only"};
+    struct wd_alg_driver *aggregated_drvs[WD_COMP_ALG_MAX] = {0};
+    __u32 total_count = 0;
+    int i, ret;
+
+    for (i = 0; i < WD_COMP_ALG_MAX; i++) {
+        struct wd_alg_driver **tmp_drvs = NULL;
+        __u32 tmp_count = 0;
+        
+        /* Query the framework for the specific algorithm's driver instance */
+        ret = wd_get_drv_array(zip_algs[i], TASK_HW, "hisi_zip", &tmp_drvs, &tmp_count);
+        if (ret == 0 && tmp_count > 0) {
+            aggregated_drvs[total_count++] = tmp_drvs[0];
+        }
+        
+        /* Free the temporary array shell allocated by the framework */
+        if (tmp_drvs) {
+            free(tmp_drvs);
+        }
+    }
+
+    if (total_count == 0) {
+        WD_ERR("failed to discover any valid ZIP drivers!\n");
+        return -WD_ENODEV;
+    }
+
+    /* Allocate heap memory for the final aggregated array */
+    *drv_array = calloc(total_count, sizeof(struct wd_alg_driver *));
+    if (!(*drv_array)) {
+        WD_ERR("failed to allocate memory for aggregated ZIP drivers!\n");
+        return -WD_ENOMEM;
+    }
+
+    /* Copy the collected pointers to the heap array */
+    memcpy(*drv_array, aggregated_drvs, total_count * sizeof(struct wd_alg_driver *));
+    *drv_count = total_count;
+    
+    WD_INFO("successfully aggregated %u unique ZIP drivers for V1 init\n", total_count);
+    return 0;
+}
+二、 修改后的 wd_comp_init (V1 分支)
+现在，wd_comp_init 的主流程变得非常干净，只需要调用这个新函数即可：
+int wd_comp_init(struct wd_ctx_config *config, struct wd_sched *sched)
+{
+    __u32 drv_count = 0;
+    int ret;
+
+    pthread_atfork(NULL, NULL, wd_comp_clear_status);
+
+    ret = wd_alg_try_init(&wd_comp_setting.status);
+    if (ret)
+        return ret;
+
+    ret = wd_init_param_check(config, sched);
+    if (ret)
+        goto out_clear_init;
+
+    ret = wd_comp_open_driver(WD_TYPE_V1);
+    if (ret)
+        goto out_clear_init;
+
+    /* Phase 1: Internal copy */
+    ret = wd_comp_init_nolock(config, sched);
+    if (ret)
+        goto out_close_driver;
+
+    /* ═══ Phase 2: Driver discovery (Call the aggregated function) ═══ */
+    ret = wd_comp_discover_and_aggregate_drvs(&wd_comp_setting.config.drv_array, &drv_count);
+    if (ret) {
+        goto out_uninit_nolock;
+    }
+
+    /* ═══ Phase 2.5: RR bind drivers to internal ctxs ═══ */
+    ret = wd_ctx_bind_drivers(&wd_comp_setting.config,
+            wd_comp_setting.config.drv_array, drv_count);
+    if (ret) {
+        WD_ERR("driver binding failed!\n");
+        goto out_free_drv_array;
+    }
+
+    /* ═══ Phase 3: Driver initialization ═══ */
+    ret = wd_alg_init_driver(&wd_comp_setting.config);
+    if (ret) {
+        WD_ERR("comp driver init failed!\n");
+        goto out_unbind_drivers;
+    }
+
+    wd_alg_set_init(&wd_comp_setting.status);
+    return 0;
+
+out_unbind_drivers:
+    wd_ctx_unbind_drivers(&wd_comp_setting.config);
+out_free_drv_array:
+    wd_put_drv_array(wd_comp_setting.config.drv_array, drv_count);
+    wd_comp_setting.config.drv_array = NULL;
+out_uninit_nolock:
+    wd_comp_uninit_nolock();
+out_close_driver:
+    wd_comp_close_driver(WD_TYPE_V1);
+out_clear_init:
+    wd_alg_clear_init(&wd_comp_setting.status);
+    return ret;
+}
+三、 这样封装的三大优势
+1. 主流程一目了然：
+wd_comp_init 现在完美呈现了 UADK V1 初始化的标准三步曲：Phase 1 (Internal copy) -> Phase 2 (Driver discovery) -> Phase 2.5 (Bind) -> Phase 3 (Init)。阅读代码的人不需要陷入“如何循环查驱动”的细节中。
+2. 内存管理边界清晰：
+新函数明确承诺了“返回一个已分配的堆内存数组”，调用者（wd_comp_init）只需要在错误处理分支中调用 wd_put_drv_array 释放即可，职责划分非常明确。
+3. 极易扩展与测试：
+如果未来 ZIP 模块增加了新的算法（比如 "lz5"），只需要在 wd_comp_discover_and_aggregate_drvs 的 zip_algs 数组中加一个字符串即可，完全不会干扰到初始化的核心状态机。
+这种“核心状态机 + 独立策略函数”的设计模式，是大型 C 语言项目（如 Linux Kernel、UADK）中最推崇的代码组织方式！
