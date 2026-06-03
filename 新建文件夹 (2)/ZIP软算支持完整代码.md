@@ -530,3 +530,90 @@ sudo uadk_tool benchmark --alg zlib --mode sva --opt 0 --sync \
 | drv/soft_lz77_zstd.c | 新增 | LZ77-ZSTD软算框架 |
 | drv/hisi_comp.c | 修改 | 添加软算分支 |
 | Makefile.am | 修改 | 添加编译配置 |
+
+
+
+
+修改文件：wd_comp.c 中的 wd_comp_init (V1 分支)
+int wd_comp_init(struct wd_ctx_config *config, struct wd_sched *sched)
+{
+    __u32 drv_count = 0;
+    int ret;
+
+    // ... 前面的参数校验、dlopen 驱动、wd_comp_init_nolock 保持不变 ...
+
+    /* ═══ Phase 2: Driver discovery (ZIP 模块专属聚合逻辑) ═══ */
+    const char *zip_algs[] = {"zlib", "gzip", "deflate", "lz77_zstd", "lz4", "lz77_only"};
+    struct wd_alg_driver *all_drvs[WD_COMP_ALG_MAX] = {0};
+    __u32 total_count = 0;
+
+    for (int i = 0; i < WD_COMP_ALG_MAX; i++) {
+        struct wd_alg_driver **tmp_drvs = NULL;
+        __u32 tmp_count = 0;
+        
+        // 尝试获取该具体算法的驱动实例
+        ret = wd_get_drv_array(zip_algs[i], TASK_HW, "hisi_zip", &tmp_drvs, &tmp_count);
+        if (ret == 0 && tmp_count > 0) {
+            // 去重检查（防止同一个硬件 IP 返回相同的指针）
+            bool exists = false;
+            for (int j = 0; j < total_count; j++) {
+                if (all_drvs[j] == tmp_drvs[0]) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                all_drvs[total_count++] = tmp_drvs[0];
+            }
+            free(tmp_drvs); // 释放 wd_get_drv_array 内部分配的数组内存
+        }
+    }
+
+    if (total_count == 0) {
+        WD_ERR("driver discovery failed for all zip algorithms!\n");
+        goto out_uninit_nolock;
+    }
+
+    // 将收集到的所有 drv 实例赋值给 config
+    // 注意：必须用 malloc/calloc，因为后续 wd_put_drv_array 会 free 它
+    wd_comp_setting.config.drv_array = calloc(total_count, sizeof(struct wd_alg_driver *));
+    if (!wd_comp_setting.config.drv_array) {
+        ret = -WD_ENOMEM;
+        goto out_uninit_nolock;
+    }
+    memcpy(wd_comp_setting.config.drv_array, all_drvs, total_count * sizeof(struct wd_alg_driver *));
+    drv_count = total_count;
+    
+    WD_INFO("discovered %u unique zip drivers\n", drv_count);
+
+    /* ═══ Phase 2.5: RR bind drivers to internal ctxs ═══ */
+    ret = wd_ctx_bind_drivers(&wd_comp_setting.config,
+            wd_comp_setting.config.drv_array, drv_count);
+    if (ret) {
+        WD_ERR("driver binding failed!\n");
+        goto out_free_drv_array;
+    }
+
+    /* ═══ Phase 3: Driver initialization ═══ */
+    ret = wd_alg_init_driver(&wd_comp_setting.config);
+    if (ret) {
+        WD_ERR("comp driver init failed!\n");
+        goto out_unbind_drivers;
+    }
+
+    wd_alg_set_init(&wd_comp_setting.status);
+    return 0;
+
+out_unbind_drivers:
+    wd_ctx_unbind_drivers(&wd_comp_setting.config);
+out_free_drv_array:
+    wd_put_drv_array(wd_comp_setting.config.drv_array, drv_count);
+    wd_comp_setting.config.drv_array = NULL;
+out_uninit_nolock:
+    wd_comp_uninit_nolock();
+out_close_driver:
+    wd_comp_close_driver(WD_TYPE_V1);
+out_clear_init:
+    wd_alg_clear_init(&wd_comp_setting.status);
+    return ret;
+}
