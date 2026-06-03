@@ -787,3 +787,89 @@ static int wd_comp_discover_drvs(struct wd_alg_driver ***drv_array, __u32 *drv_c
     WD_INFO("discovered %u ZIP drivers for V1 init\n", count);
     return 0;
 }
+
+
+int wd_comp_init(struct wd_ctx_config *config, struct wd_sched *sched)
+{
+    __u32 drv_count = 0;
+    int ret;
+
+    pthread_atfork(NULL, NULL, wd_comp_clear_status);
+
+    ret = wd_alg_try_init(&wd_comp_setting.status);
+    if (ret)
+        return ret;
+
+    ret = wd_init_param_check(config, sched);
+    if (ret)
+        goto out_clear_init;
+
+    ret = wd_comp_open_driver(WD_TYPE_V1);
+    if (ret)
+        goto out_clear_init;
+
+    /* Phase 1: Internal copy */
+    ret = wd_comp_init_nolock(config, sched);
+    if (ret)
+        goto out_close_driver;
+
+    /* ═══ Phase 2: Driver discovery ═══ */
+    ret = wd_comp_discover_drvs(&wd_comp_setting.config.drv_array, &drv_count);
+    if (ret) {
+        goto out_uninit_nolock;
+    }
+
+    /* ⭐ 核心修复 1：防呆裁剪 (确保 drv_count <= ctx_num) */
+    if (drv_count > wd_comp_setting.config.ctx_num) {
+        WD_INFO("V1 init: drv_count (%u) > ctx_num (%u), truncating drivers.\n",
+                drv_count, wd_comp_setting.config.ctx_num);
+        drv_count = wd_comp_setting.config.ctx_num;
+    }
+
+    /* ⭐ 核心修复 2：防 -17 兜底 (解决底层 mmap 冲突) */
+    /* 
+     * 在 V1 模式下，如果 ctx_num > 1，底层 hisi_zip_init 会被多次调用，
+     * 导致同一进程对同一设备重复 mmap DUS 内存，触发 -17 (EEXIST) 错误。
+     * 为了保证 V1 流程绝对不崩溃，我们强制降级为单 ctx 单驱动。
+     * (注：真正的多 ctx + 多算法异构调度，请使用 V2 模式 --init2)
+     */
+    if (wd_comp_setting.config.ctx_num > 1) {
+        WD_INFO("V1 init: force fallback to single ctx/driver to avoid mmap conflicts.\n");
+        wd_comp_setting.config.ctx_num = 1;
+        drv_count = 1;
+    }
+
+    // 同步状态到 config
+    wd_comp_setting.config.drv_count = drv_count;
+
+    /* ═══ Phase 2.5: RR bind drivers to internal ctxs ═══ */
+    ret = wd_ctx_bind_drivers(&wd_comp_setting.config,
+            wd_comp_setting.config.drv_array, drv_count);
+    if (ret) {
+        WD_ERR("driver binding failed!\n");
+        goto out_free_drv_array;
+    }
+
+    /* ═══ Phase 3: Driver initialization ═══ */
+    ret = wd_alg_init_driver(&wd_comp_setting.config);
+    if (ret) {
+        WD_ERR("comp driver init failed!\n");
+        goto out_unbind_drivers;
+    }
+
+    wd_alg_set_init(&wd_comp_setting.status);
+    return 0;
+
+out_unbind_drivers:
+    wd_ctx_unbind_drivers(&wd_comp_setting.config);
+out_free_drv_array:
+    wd_put_drv_array(wd_comp_setting.config.drv_array, drv_count);
+    wd_comp_setting.config.drv_array = NULL;
+out_uninit_nolock:
+    wd_comp_uninit_nolock();
+out_close_driver:
+    wd_comp_close_driver(WD_TYPE_V1);
+out_clear_init:
+    wd_alg_clear_init(&wd_comp_setting.status);
+    return ret;
+}
