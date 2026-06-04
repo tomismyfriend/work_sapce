@@ -1082,3 +1082,98 @@ sess_err:
 	free(sess);
 	return (handle_t)0;
 }
+
+
+handle_t wd_comp_alloc_sess(struct wd_comp_sess_setup *setup)
+{
+	struct wd_comp_sess *sess;
+	const char *target_alg_name;
+	struct wd_sched_params params = {0};
+	int ret;
+	__u32 i;
+
+	if (!setup || setup->alg_type >= WD_COMP_ALG_MAX) {
+		WD_ERR("invalid setup or alg_type!\n");
+		return (handle_t)0;
+	}
+
+	/* ═══ 核心分流：根据 init_type 决定传给调度器的算法名 ═══ */
+	if (wd_comp_setting.init_type == WD_TYPE_V1) {
+		/* 
+		 * V1 模式：偷梁换柱 
+		 * 获取当前 ctx 绑定的唯一驱动的 alg_name (如 "zlib")，用于欺骗调度器
+		 */
+		target_alg_name = NULL;
+		for (i = 0; i < wd_comp_setting.config.ctx_num; i++) {
+			if (wd_comp_setting.config.ctxs[i].drv) {
+				target_alg_name = wd_comp_setting.config.ctxs[i].drv->alg_name;
+				break;
+			}
+		}
+		if (!target_alg_name) {
+			WD_ERR("V1 mode: no valid driver bound to ctx!\n");
+			return (handle_t)0;
+		}
+	} else {
+		/* 
+		 * V2 模式：保持真实 
+		 * 使用用户请求的真实算法名 (如 "gzip" 或 "lz4")，支持真异构调度
+		 */
+		target_alg_name = wd_comp_alg_name[setup->alg_type];
+	}
+
+	/* 准入检查 */
+	if (!wd_drv_alg_support(target_alg_name, &wd_comp_setting.config)) {
+		WD_ERR("failed to support algorithm: %s!\n", target_alg_name);
+		return (handle_t)0;
+	}
+
+	/* 分配 Session 内存 */
+	sess = calloc(1, sizeof(struct wd_comp_sess));
+	if (!sess)
+		return (handle_t)0;
+
+	/* 
+	 * ⭐ 关键细节：无论 V1/V2，底层执行必须保存真实的 alg_type！
+	 * 后续 fill_comp_msg 会把它拷贝给 msg->alg_type，
+	 * 底层驱动完全依赖这个枚举值来走正确的硬件/软件分支。
+	 */
+	sess->alg_type = setup->alg_type; 
+	sess->comp_lv = setup->comp_lv;
+	sess->win_sz = setup->win_sz;
+	sess->stream_pos = WD_COMP_STREAM_NEW;
+	sess->mm_type = setup->mm_type;
+	memcpy(&sess->mm_ops, &setup->mm_ops, sizeof(struct wd_mm_ops));
+
+	/* 内存与上下文初始化 */
+	ret = wd_mem_ops_init(wd_comp_setting.config.ctxs[0].ctx, &setup->mm_ops, setup->mm_type);
+	if (ret)
+		goto sess_err;
+
+	ret = wd_alloc_ctx_buf(&setup->mm_ops, sess);
+	if (ret)
+		goto sess_err;
+
+	/* 初始化调度器 key */
+	sess->sched_key = (void *)wd_comp_setting.sched.sched_init(
+		     wd_comp_setting.sched.h_sched_ctx, setup->sched_param);
+	if (WD_IS_ERR(sess->sched_key))
+		goto sched_err;
+
+	/* 设置调度参数，触发 compat_filter */
+	params.alg_name = target_alg_name; /* ⭐ 传入决定好的名字 */
+	params.ctxs = wd_comp_setting.config.ctxs;
+	
+	wd_comp_setting.sched.set_param(
+		wd_comp_setting.sched.h_sched_ctx,
+		sess->sched_key, ¶ms);
+
+	return (handle_t)sess;
+
+sched_err:
+	wd_free_ctx_buf(&setup->mm_ops, sess);
+sess_err:
+	free(sess);
+	return (handle_t)0;
+}
+三、 代码设计亮点
