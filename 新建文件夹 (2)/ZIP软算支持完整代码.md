@@ -873,3 +873,103 @@ out_clear_init:
     wd_alg_clear_init(&wd_comp_setting.status);
     return ret;
 }
+
+
+
+
+在 hisi_comp.c 的全局变量区（靠近其他 static 变量的地方），增加一个状态位：
+/* ⭐ 状态位：记录底层硬件资源（QP/mmap）是否已初始化，防止多驱动实例重复 mmap 导致 -17 (EEXIST) */
+static bool g_zip_hw_initialized = false;
+2. 重构 hisi_zip_init（拦截重复初始化）
+static int hisi_zip_init(void *conf, void *priv)
+{
+	struct wd_ctx_config_internal *config = conf;
+	struct hisi_zip_ctx *zip_ctx = (struct hisi_zip_ctx *)priv;
+	struct hisi_qm_priv qm_priv;
+	handle_t h_qp = 0;
+	handle_t h_ctx;
+	__u32 i, j;
+
+	if (!config->ctx_num) {
+		WD_ERR("invalid: zip init config ctx num is 0!\n");
+		return -WD_EINVAL;
+	}
+
+	/* ⭐ 核心拦截：如果硬件已初始化，跳过 QP 分配，直接复用 */
+	if (g_zip_hw_initialized) {
+		WD_INFO("hisi_zip_init: hardware already initialized, skip QP alloc.\n");
+		goto copy_config;
+	}
+
+	WD_INFO("hisi_zip_init: ctx type: %u for %u ctx.\n",
+			config->ctxs[0].ctx_type, config->ctx_num);
+	qm_priv.sqe_size = sizeof(struct hisi_zip_sqe);
+	
+	/* allocate qp for each context (包含 mmap DUS) */
+	for (i = 0; i < config->ctx_num; i++) {
+		if (config->ctxs[i].ctx_type != UADK_ALG_HW ||
+		     !config->ctxs[i].ctx)
+			continue;
+		h_ctx = config->ctxs[i].ctx;
+		qm_priv.op_type = config->ctxs[i].op_type;
+		qm_priv.qp_mode = config->ctxs[i].ctx_mode;
+		qm_priv.epoll_en = (qm_priv.qp_mode == CTX_MODE_SYNC) ?
+				   config->epoll_en : 0;
+		qm_priv.idx = i;
+		h_qp = hisi_qm_alloc_qp(&qm_priv, h_ctx);
+		if (unlikely(!h_qp))
+			goto out;
+		config->ctxs[i].sqn = qm_priv.sqn;
+	}
+
+	/* ⭐ 标记硬件初始化完成 */
+	g_zip_hw_initialized = true;
+
+copy_config:
+	/* 
+	 * ⚠️ 关键细节：无论是否跳过硬件初始化，都必须把 config 拷贝给当前的 zip_ctx！
+	 * 否则后续的 hisi_zip_comp_send 无法通过 zip_ctx 找到对应的 QP。
+	 */
+	memcpy(&zip_ctx->config, config, sizeof(struct wd_ctx_config_internal));
+
+	return 0;
+
+out:
+	for (j = 0; j < i; j++) {
+		h_qp = (handle_t)wd_ctx_get_priv(config->ctxs[j].ctx);
+		if (h_qp) hisi_qm_free_qp(h_qp);
+	}
+	return -WD_EINVAL;
+}
+3. 重构 hisi_zip_exit（拦截重复释放）
+既然 init 只执行了一次硬件分配，exit 也必须确保只释放一次，防止 double free 导致内核崩溃。
+static void hisi_zip_exit(void *priv)
+{
+	struct hisi_zip_ctx *zip_ctx = (struct hisi_zip_ctx *)priv;
+	struct wd_ctx_config_internal *config;
+	handle_t h_qp;
+	__u32 i;
+
+	if (!priv) {
+		WD_ERR("invalid: input parameter is NULL!\n");
+		return;
+	}
+
+	/* ⭐ 对称拦截：只有硬件确实初始化过，才执行释放 */
+	if (!g_zip_hw_initialized) {
+		return;
+	}
+
+	config = &zip_ctx->config;
+
+	for (i = 0; i < config->ctx_num; i++) {
+		if (config->ctxs[i].ctx_type != UADK_ALG_HW || !config->ctxs[i].ctx)
+			continue;
+		h_qp = (handle_t)wd_ctx_get_priv(config->ctxs[i].ctx);
+		if (h_qp)
+			hisi_qm_free_qp(h_qp);
+	}
+
+	/* ⭐ 重置状态位，允许下一次 uninit/init 循环 */
+	g_zip_hw_initialized = false;
+}
