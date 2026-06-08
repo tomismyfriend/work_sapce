@@ -287,3 +287,77 @@ sudo uadk_tool benchmark --alg gzip --mode sva --opt 1 --sync --pktlen 4096 --se
         }
     }
 (注：这里的关键是物理内存扩大，但逻辑长度 src_len/dst_len 保持不变，这样既给了硬件越界的空间，又不会破坏业务逻辑。)
+
+
+
+
+
+
+
+
+
+以下是精准的“埋点”方案：
+一、 在 uadk_tool 层加打印（查 Session 参数与输入数据）
+修改文件：uadk_tool/benchmark/zip_uadk_benchmark.c
+目标函数：zip_uadk_blk_sync_run（如果是流模式则是 zip_uadk_stm_sync_run）
+在调用 wd_comp_alloc_sess 和 wd_do_comp_sync 的前后添加打印：
+// 1. 在调用 wd_comp_alloc_sess(&comp_setup) 之前添加：
+ZIP_TST_PRT("[DEBUG TOOL] alloc_sess: alg=%d, op=%d, win_sz=%d, comp_lv=%d\n",
+            comp_setup.alg_type, comp_setup.op_type, 
+            comp_setup.win_sz, comp_setup.comp_lv);
+
+// ... h_sess = wd_comp_alloc_sess(&comp_setup); ...
+
+// 2. 在调用 wd_do_comp_sync(h_sess, &creq) 之前添加（仅针对解压）：
+if (pdata->optype == WD_DIR_DECOMPRESS) {
+    unsigned char *src_ptr = (unsigned char *)creq.src;
+    ZIP_TST_PRT("[DEBUG TOOL] do_sync DECOMP: src_len=%u, dst_len=%u, src_head=[%02x %02x %02x %02x]\n",
+                creq.src_len, creq.dst_len, 
+                src_ptr[0], src_ptr[1], src_ptr[2], src_ptr[3]);
+}
+
+// ... ret = wd_do_comp_sync(h_sess, &creq); ...
+二、 在底层驱动层加打印（查硬件 SQE 与返回状态）
+修改文件：drv/hisi_comp.c
+目标函数：hisi_zip_comp_send (发送前) 和 parse_zip_sqe (接收后)
+// 1. 在 hisi_zip_comp_send 中，调用 hisi_qm_send 之前添加：
+if (msg->req.op_type == WD_DIR_DECOMPRESS && msg->alg_type == WD_GZIP) {
+    // 打印填入 SQE 的实际 in_size 和 out_size
+    WD_ERR("[DEBUG DRV] SEND DECOMP GZIP: in_size=%u, out_size=%u\n",
+           in_size, out_size); 
+}
+
+// 2. 在 parse_zip_sqe 中，检查到 status 不为 0 时添加：
+if (status) {
+    WD_ERR("[DEBUG DRV] RECV HW ERROR: status=0x%x, consumed=%u, produced=%u\n",
+           status, sqe->consumed, sqe->produced);
+}
+三、 如何根据打印结果“破案”？
+重新编译 UADK 和 uadk_tool 后，分别运行 V1（不带 --init2）和 V2（带 --init2）命令，对比两者的打印输出：
+嫌疑 A：Session 参数未初始化（V1 的 win_sz 或 comp_lv 是 0）
+- V1 打印：[DEBUG TOOL] alloc_sess: alg=1, op=1, win_sz=0, comp_lv=0
+- V2 打印：[DEBUG TOOL] alloc_sess: alg=1, op=1, win_sz=4, comp_lv=1
+- 结论：V1 模式下 uadk_tool 没有正确初始化 comp_setup，导致硬件使用了错误的窗口大小，解压状态机错乱报 CRC 错。
+- 解法：在 uadk_tool 中强制赋值 comp_setup.win_sz = WD_COMP_WS_32K; comp_setup.comp_lv = WD_COMP_L1;。
+嫌疑 B：喂给硬件的 src_len 是错的（包含了垃圾数据）
+- V1 打印：[DEBUG TOOL] do_sync DECOMP: src_len=8192... (等于 buffer 总大小)
+- V2 打印：[DEBUG TOOL] do_sync DECOMP: src_len=2150... (压缩后的真实长度)
+- 结论：V1 模式下，uadk_tool 把整个 buffer 的大小当成了压缩数据的长度喂给硬件。硬件多读了后面的垃圾数据，导致找不到正确的 GZIP Trailer，报 0x10。
+- 解法：在 uadk_tool 准备解压数据时，确保 creq.src_len 赋值的是压缩后返回的真实 produced 长度，而不是 g_pktlen 或 dst_len。
+嫌疑 C：输入数据根本不是合法的 GZIP 格式
+- V1 打印：[DEBUG TOOL] do_sync DECOMP: ... src_head=[78 9c 00 00] (这是 zlib 的头，不是 gzip)
+- V2 打印：[DEBUG TOOL] do_sync DECOMP: ... src_head=[1f 8b 08 00] (合法的 GZIP 头)
+- 结论：V1 模式下，uadk_tool 内部构造测试数据时，错误地使用了 zlib 格式或者随机数据，硬件按 GZIP 解析自然报 CRC 错。
+- 解法：检查 uadk_tool 中构造 GZIP 数据的逻辑，确保生成了正确的 1f 8b 头和 8 字节 Trailer。
+嫌疑 D：底层 SQE 参数被篡改
+- V1 打印：[DEBUG DRV] SEND DECOMP GZIP: in_size=8192, out_size=12288
+- V2 打印：[DEBUG DRV] SEND DECOMP GZIP: in_size=2150, out_size=4096
+- 结论：上层传给底层的 msg->req.src_len 就是错的，导致底层填入 SQE 的 in_size 错误。根因依然在 uadk_tool 层。
+四、 总结与操作建议
+1. 按照上述方案在 zip_uadk_benchmark.c 和 hisi_comp.c 中加入 ZIP_TST_PRT 和 WD_ERR 打印。
+2. 编译并分别运行 V1 和 V2 测试。
+3. 重点对比：
+- win_sz 和 comp_lv 是否为 0。
+- 解压时的 src_len 是否等于压缩后的真实长度。
+- src 的前两个字节是否是 1f 8b (GZIP Magic Number)。
+只要对比出 V1 和 V2 在上述三个维度中的任何一个差异，就能 100% 锁定导致 status=0x10 的真正元凶！
