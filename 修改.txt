@@ -249,3 +249,41 @@ sudo make install && sudo ldconfig
 3. 运行 GZIP 解压缩测试：
 sudo uadk_tool benchmark --alg gzip --mode sva --opt 1 --sync --pktlen 4096 --seconds 5 --init2
 预期结果：程序完美运行并正常退出，彻底告别 Aborted (core dumped)。这是针对硬件特定 Bug 最优雅、最底层的防御性修复！
+
+
+
+
+
+
+二、 终极修复方案（针对 free_uadk_bd_pool 崩溃）
+既然已经精准定位到了崩溃函数，我们有两个方案。方案 A 是正规修复，方案 B 是暴力 Hack（强烈推荐用于快速验证和绕过）。
+方案 A：正规修复（正确添加 Padding）
+必须确保在 Flat Buffer 模式下，malloc 的大小和传给底层的 dst_len 同步扩展。
+修改 uadk_tool/benchmark/zip_uadk_benchmark.c：
+1. 修改 init_uadk_bd_pool (分配阶段，约 720 行)
+	if (optype == WD_DIR_COMPRESS) {
+		insize = g_pktlen;
+		outsize = g_pktlen * COMP_LEN_RATE;
+	} else { // decompress
+		insize = g_pktlen;
+		outsize = g_pktlen * DECOMP_LEN_RATE;
+	}
+
+	/* ⭐ 核心修复：强制增加 64 字节的 DMA 安全区 (Padding) */
+	#define UADK_COMP_DMA_PADDING 64
+	outsize += UADK_COMP_DMA_PADDING;
+	insize += UADK_COMP_DMA_PADDING; // src 也加上，防止硬件读越界
+
+    // ... 后续代码 ...
+	for (i = 0; i < g_thread_num; i++) {
+        // ...
+		for (j = 0; j < MAX_POOL_LENTH_COMP; j++) {
+            // 确保 malloc 使用的是扩展后的 size
+			g_zip_pool.pool[i].bds[j].src = create_buf(g_data_fmt, insize, unit_sz);
+			g_zip_pool.pool[i].bds[j].src_len = g_pktlen; // ⚠️ 注意：src_len 保持原值，只扩大物理内存
+
+			g_zip_pool.pool[i].bds[j].dst = create_buf(g_data_fmt, outsize, unit_sz);
+			g_zip_pool.pool[i].bds[j].dst_len = g_pktlen * DECOMP_LEN_RATE; // ⚠️ 注意：dst_len 保持原值，只扩大物理内存
+        }
+    }
+(注：这里的关键是物理内存扩大，但逻辑长度 src_len/dst_len 保持不变，这样既给了硬件越界的空间，又不会破坏业务逻辑。)
