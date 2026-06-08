@@ -52,3 +52,19 @@ ZIP 异构调度测试和适配清单
     
 17. V1/V2 API兼容
     - wd_comp_init vs wd_comp_init2_ 行为一致
+
+
+
+
+
+
+
+
+
+
+
+
+/* ⭐ 核心修复：为 GZIP/ZLIB 的 Header 和 Trailer 强制预留 32 字节余量 */
+#define UADK_COMP_TAIL_SZ 32 
+
+uadk_pool->bds[i].dst_len = g_pktlen * COMP_LEN_RATE + UADK_COMP_TAIL_SZ;
