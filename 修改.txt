@@ -62,9 +62,56 @@ ZIP 异构调度测试和适配清单
 
 
 
+具体修改方案
+修改文件：uadk_tool/benchmark/zip_uadk_benchmark.c
+修改位置：init_uadk_bd_pool 函数（大约第 710 行附近）
+找到计算 outsize 的代码块，在计算完成后，强制加上一个较大的 Padding（例如 4096 字节）。
+修改前：
+static int init_uadk_bd_pool(u32 optype)
+{
+	int unit_sz;
+	u32 outsize;
+	u32 insize;
+	int i, j;
 
+	// make the block not align to 4K
+	optype = optype % WD_DIR_MAX;
+	if (optype == WD_DIR_COMPRESS) {//compress
+		insize = g_pktlen;
+		outsize = g_pktlen * COMP_LEN_RATE;
+	} else { // decompress
+		insize = g_pktlen;
+		outsize = g_pktlen * DECOMP_LEN_RATE;
+	}
 
-/* ⭐ 核心修复：为 GZIP/ZLIB 的 Header 和 Trailer 强制预留 32 字节余量 */
-#define UADK_COMP_TAIL_SZ 32 
+	g_zip_pool.pool = calloc(1, g_thread_num * sizeof(struct bd_pool));
+    // ...
+修改后：
+static int init_uadk_bd_pool(u32 optype)
+{
+	int unit_sz;
+	u32 outsize;
+	u32 insize;
+	int i, j;
 
-uadk_pool->bds[i].dst_len = g_pktlen * COMP_LEN_RATE + UADK_COMP_TAIL_SZ;
+	// make the block not align to 4K
+	optype = optype % WD_DIR_MAX;
+	if (optype == WD_DIR_COMPRESS) {//compress
+		insize = g_pktlen;
+		outsize = g_pktlen * COMP_LEN_RATE;
+	} else { // decompress
+		insize = g_pktlen;
+		outsize = g_pktlen * DECOMP_LEN_RATE;
+	}
+
+	/* 
+	 * ⭐ 核心修复：强制增加 DMA Padding 
+	 * GZIP 硬件输出包含 10字节 Header + 数据 + 8字节 Trailer。
+	 * 增加 4096 字节的 Padding，彻底隔离硬件输出与 glibc 堆管理元数据，
+	 * 防止硬件 DMA 微小越界写导致退出时爆发 "corruption (!prev)"。
+	 */
+	#define UADK_COMP_DMA_PADDING 4096
+	outsize += UADK_COMP_DMA_PADDING;
+
+	g_zip_pool.pool = calloc(1, g_thread_num * sizeof(struct bd_pool));
+    // ...
