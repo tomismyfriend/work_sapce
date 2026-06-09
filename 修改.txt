@@ -361,3 +361,48 @@ if (status) {
 - 解压时的 src_len 是否等于压缩后的真实长度。
 - src 的前两个字节是否是 1f 8b (GZIP Magic Number)。
 只要对比出 V1 和 V2 在上述三个维度中的任何一个差异，就能 100% 锁定导致 status=0x10 的真正元凶！
+
+
+
+
+
+
+
+二、 完整测试指令集
+以下是针对你提到的所有测试项（init1/init2、sva/no-sva、流模式）的标准测试指令。
+(注意：测试前请确保已应用上述的流模式拦截代码，并重新编译了 uadk_tool)
+1. No-SVA 模式测试 (Block 块模式)
+No-SVA 模式需要硬件和内核支持非 SVA 模式，且通常需要配置 WD_COMP_CTX_NUM 环境变量（如果是 V2）。
+Init1 路径 (No-SVA)
+# 压缩
+sudo ./uadk_tool benchmark --alg gzip --mode nosva --opt 0 --sync --pktlen 4096 --seconds 5 --thread 1 --ctxnum 1
+
+# 解压 (确保先跑压缩生成了文件)
+sudo ./uadk_tool benchmark --alg gzip --mode nosva --opt 1 --sync --pktlen 4096 --seconds 5 --thread 1 --ctxnum 1
+Init2 路径 (No-SVA)
+# 压缩
+sudo ./uadk_tool benchmark --alg gzip --mode nosva --opt 0 --sync --pktlen 4096 --seconds 5 --thread 1 --ctxnum 1 --init2
+
+# 解压
+sudo ./uadk_tool benchmark --alg gzip --mode nosva --opt 1 --sync --pktlen 4096 --seconds 5 --thread 1 --ctxnum 1 --init2
+2. 流模式 (Stream Mode) 基本功能测试
+流模式使用 --opt 2 (流压缩) 和 --opt 3 (流解压)。由于我们加了拦截代码，即使你传入 --ctxnum 4，工具也会自动修正为 1。
+Init2 路径 (SVA 流模式)
+# 流压缩 (生成流式压缩文件)
+sudo ./uadk_tool benchmark --alg gzip --mode sva --opt 2 --sync --pktlen 4096 --seconds 5 --thread 1 --ctxnum 1 --init2
+
+# 流解压 (读取流式压缩文件并解压)
+sudo ./uadk_tool benchmark --alg gzip --mode sva --opt 3 --sync --pktlen 4096 --seconds 5 --thread 1 --ctxnum 1 --init2
+Init1 路径 (SVA 流模式)
+# 流压缩
+sudo ./uadk_tool benchmark --alg gzip --mode sva --opt 2 --sync --pktlen 4096 --seconds 5 --thread 1 --ctxnum 1
+
+# 流解压
+sudo ./uadk_tool benchmark --alg gzip --mode sva --opt 3 --sync --pktlen 4096 --seconds 5 --thread 1 --ctxnum 1
+3. 异构调度多 ctx 压力测试 (仅针对 Block 块模式)
+验证在 Block 模式下，多个 ctx 和线程能否正常轮询调度（注意：流模式绝对不能跑这个）。
+# 多 ctx + 多线程 压缩 (验证 RR 调度)
+sudo ./uadk_tool benchmark --alg gzip --mode sva --opt 0 --sync --pktlen 4096 --seconds 5 --thread 4 --ctxnum 4 --init2
+
+# 多 ctx + 多线程 解压
+sudo ./uadk_tool benchmark --alg gzip --mode sva --opt 1 --sync --pktlen 4096 --seconds 5 --thread 4 --ctxnum 4 --init2
