@@ -406,3 +406,83 @@ sudo ./uadk_tool benchmark --alg gzip --mode sva --opt 0 --sync --pktlen 4096 --
 
 # 多 ctx + 多线程 解压
 sudo ./uadk_tool benchmark --alg gzip --mode sva --opt 1 --sync --pktlen 4096 --seconds 5 --thread 4 --ctxnum 4 --init2
+
+
+
+
+步骤 1：在 struct wd_comp_sess 中增加“锚定”字段
+打开 wd_comp.c，找到 struct wd_comp_sess 的定义（约第 35 行），增加 3 个字段用于记录流模式固定的 ctx：
+struct wd_comp_sess {
+	enum wd_comp_alg_type alg_type;
+	enum wd_comp_level comp_lv;
+	enum wd_comp_winsz_type win_sz;
+	enum wd_comp_strm_pos stream_pos;
+	__u32 isize;
+	__u32 checksum;
+	__u8 *ctx_buf;
+	void *sched_key;
+	struct wd_mm_ops mm_ops;
+	enum wd_mem_type mm_type;
+
+	/* ⭐ 新增：流模式 ctx 锚定字段 */
+	bool strm_ctx_fixed;       /* 是否已锚定 ctx */
+	__u32 strm_sync_ctx_idx;   /* 锚定的 sync ctx 索引 */
+	__u32 strm_async_ctx_idx;  /* 锚定的 async ctx 索引 */
+};
+步骤 2：在 wd_comp_alloc_sess 中初始化锚定字段
+在 wd_comp_alloc_sess 函数中，分配 sess 后，初始化这些字段：
+handle_t wd_comp_alloc_sess(struct wd_comp_sess_setup *setup)
+{
+    struct wd_comp_sess *sess;
+    // ... 前面的校验和内存分配 ...
+
+    sess = calloc(1, sizeof(struct wd_comp_sess));
+    if (!sess)
+        return (handle_t)0;
+
+    // ... 原有字段赋值 ...
+
+    /* ⭐ 初始化流模式锚定字段 */
+    sess->strm_ctx_fixed = false;
+    sess->strm_sync_ctx_idx = INVALID_POS; // 假设 INVALID_POS 已定义，或用 0xFFFFFFFF
+    sess->strm_async_ctx_idx = INVALID_POS;
+
+    // ... 后续的 sched_init 和 set_param ...
+步骤 3：在 wd_comp_sync_job 中实施“锚定”逻辑
+这是最核心的修改。在 wd_comp_sync_job（被 wd_do_comp_strm 调用）中，检查 msg->stream_mode。如果是流模式，强制使用锚定的 ctx：
+static int wd_comp_sync_job(struct wd_comp_sess *sess, struct wd_comp_req *req,
+			    struct wd_comp_msg *msg)
+{
+	handle_t h_sched_ctx = wd_comp_setting.sched.h_sched_ctx;
+	struct wd_ctx_config_internal *config = &wd_comp_setting.config;
+	struct wd_ctx_internal *ctx;
+	__u32 idx;
+	int ret;
+
+	/* ⭐ 核心修复：流模式强制锚定唯一 ctx，防止跑串 */
+	if (msg->stream_mode == WD_COMP_STATEFUL) {
+		if (!sess->strm_ctx_fixed) {
+			/* 第一次执行流模式，让调度器选一个 ctx，然后锚定死 */
+			idx = wd_comp_setting.sched.pick_next_ctx(h_sched_ctx,
+								  sess->sched_key, CTX_MODE_SYNC);
+			sess->strm_sync_ctx_idx = idx;
+			sess->strm_ctx_fixed = true;
+		} else {
+			/* 后续永远使用锚定的 ctx */
+			idx = sess->strm_sync_ctx_idx;
+		}
+	} else {
+		/* 块模式：正常走调度器轮询 */
+		idx = wd_comp_setting.sched.pick_next_ctx(h_sched_ctx,
+							  sess->sched_key, CTX_MODE_SYNC);
+	}
+
+	ret = wd_check_ctx(config, CTX_MODE_SYNC, idx);
+	if (unlikely(ret))
+		return ret;
+
+	wd_dfx_msg_cnt(config, WD_CTX_CNT_NUM, idx);
+	ctx = config->ctxs + idx;
+
+    // ... 后续的 send/recv 逻辑保持不变 ...
+(注：如果存在异步流模式 wd_comp_async_job，也需要做相同的 strm_async_ctx_idx 锚定逻辑。)
