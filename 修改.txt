@@ -486,3 +486,64 @@ static int wd_comp_sync_job(struct wd_comp_sess *sess, struct wd_comp_req *req,
 
     // ... 后续的 send/recv 逻辑保持不变 ...
 (注：如果存在异步流模式 wd_comp_async_job，也需要做相同的 strm_async_ctx_idx 锚定逻辑。)
+
+
+
+
+一、 核心测试指令
+测试必须使用 sudo -E 来保留环境变量 WD_COMP_EPOLL_EN=1。同时，在运行命令的同时，打开另一个终端运行 top 或 htop 观察 uadk_tool 进程的 CPU 占用率。
+1. 基准测试：忙等模式（Baseline，不开启 Epoll）
+# 不设置环境变量，默认忙等
+sudo ./uadk_tool benchmark --alg gzip --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 10 --thread 1 --ctxnum 1 --init2
+预期观察：在 top 中，uadk_tool 进程的 CPU 占用率应该*接近 100%*（单核跑满）。
+2. Epoll 模式测试（单 ctx）
+# 开启 Epoll 环境变量
+export WD_COMP_EPOLL_EN=1
+
+# 使用 sudo -E 保留环境变量
+sudo -E ./uadk_tool benchmark --alg gzip --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 10 --thread 1 --ctxnum 1 --init2
+预期观察：在 top 中，uadk_tool 进程的 CPU 占用率应该显著下降（例如降至 10%~30%），且终端打印的 perf（吞吐量）和 iops 与忙等模式相比基本持平或仅有轻微下降。
+3. 异构调度 + Epoll 测试（多 ctx + 多线程）
+验证在多个硬件队列同时使用 Epoll 时，唤醒是否正常，有没有死锁或唤醒丢失。
+export WD_COMP_EPOLL_EN=1
+
+# 4 个线程，4 个 ctx
+sudo -E ./uadk_tool benchmark --alg gzip --mode sva --opt 0 --sync \
+    --pktlen 4096 --seconds 10 --thread 4 --ctxnum 4 --init2
+预期观察：
+- 4 个线程的总 CPU 占用率应该远低于 400%（例如在 50%~150% 之间）。
+- 性能（perf）应该随着线程数增加而线性增长。
+- 程序正常退出，没有卡死或超时。
+4. 异步模式下的 Epoll 测试
+在异步模式（--async）下，uadk_tool 会启动专门的 Poll 线程，Epoll 机制会在这些 Poll 线程中生效。
+export WD_COMP_EPOLL_EN=1
+
+sudo -E ./uadk_tool benchmark --alg gzip --mode sva --opt 0 --async \
+    --pktlen 4096 --seconds 10 --thread 4 --ctxnum 4 --init2
+二、 如何判断 Epoll 是否真正生效？
+观察指标	忙等模式 (Baseline)
+CPU 占用率 (top)	单线程接近 100%
+吞吐量 (perf)	例如 1500 MB/s
+IOPS	例如 380 Kops
+程序状态	正常退出
+注：开启 Epoll 后，由于线程休眠和唤醒有微小的上下文切换开销，IOPS 和吞吐量通常会有 5%~10% 的轻微下降，这是正常的。但如果 CPU 降下来了，性能却掉了一大半，说明硬件中断/唤醒机制有延迟。
+三、 常见问题排查（如果 CPU 没降下来怎么办？）
+如果你设置了 WD_COMP_EPOLL_EN=1，但 top 看到 CPU 依然是 100%，说明 Epoll 没有生效。可能的原因：
+1. 环境变量没传进去：
+- 确保使用了 sudo -E。如果不行，可以直接在代码里写死测试：
+在 wd_comp.c 的 wd_comp_init_nolock 中，找到 wd_set_epoll_en，临时改为：
+wd_comp_setting.config.epoll_en = 1; // 强制开启
+2. 内核/驱动不支持 Epoll：
+- Hisilicon ZIP 驱动必须支持 UACCE_CMD_EPOLL 或相关的中断机制。如果内核版本过低，硬件可能只支持轮询。
+- 检查 dmesg 是否有 UACCE 相关的报错。
+3. 数据包太小，硬件处理太快：
+- 如果 --pktlen 太小（如 64 字节），硬件瞬间就处理完了，软件线程根本来不及进入 epoll_wait 就又被唤醒了，导致看起来像忙等。
+- 解决：增大 --pktlen（如 65536 或 1048576），让硬件处理时间变长，给软件线程足够的休眠时间。
+四、 总结验证清单
+1. 跑 Baseline，记录 CPU 和 Perf。
+2. export WD_COMP_EPOLL_EN=1。
+3. sudo -E 跑 Epoll 模式，记录 CPU 和 Perf。
+4. 对比 CPU 是否大幅下降，Perf 是否基本保持。
+5. 加大 --pktlen 再次验证，排除小包干扰。
