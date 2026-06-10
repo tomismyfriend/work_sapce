@@ -1050,3 +1050,90 @@ sess_err:
 2. V2 模式（init_type == WD_TYPE_V2）：自动使用真实算法名，完美保留 UADK 框架原生的多驱动（硬件+软算）异构调度能力。
 3. 底层诚实：无论上层怎么欺骗调度器，sess->alg_type 永远保存真实的枚举值，确保底层硬件走正确的分支。
 修改完成后，重新编译 UADK 即可完美兼容 V1 和 V2 的所有场景！
+
+
+
+
+
+
+
+
+
+int wd_hw_alloc_ctx(char *alg_name, void *params, handle_t *ctx)
+{
+	struct wd_drv_ctx_params *ctx_params = (struct wd_drv_ctx_params *)params;
+	struct uacce_dev_list *dev_list, *used_list = NULL;
+	struct bitmask *used_bmp = ctx_params->bmp;
+	char alg_type[CRYPTO_MAX_ALG_NAME] = {0};
+	struct uacce_dev *dev = NULL;
+	struct uacce_dev_list *curr;
+	handle_t h_ctx;
+	int ret;
+
+	if (!params || !ctx)
+		return -WD_EINVAL;
+
+	wd_get_alg_type(alg_name, alg_type);
+	WD_ERR("[DEBUG ALLOC] alg_name=%s, alg_type=%s\n", alg_name, alg_type);
+	
+	dev_list = wd_get_accel_list(alg_type);
+	if (!dev_list && strcmp(alg_type, alg_name) != 0) {
+		WD_ERR("[DEBUG ALLOC] fallback to alg_name: %s\n", alg_name);
+		dev_list = wd_get_accel_list(alg_name);
+	}
+
+	if (!dev_list) {
+		WD_ERR("[DEBUG ALLOC] failed to get device list!\n");
+		return -WD_ENODEV;
+	}
+
+	used_list = wd_get_usable_list(dev_list, used_bmp);
+	if (WD_IS_ERR(used_list) || !used_list) {
+		WD_ERR("[DEBUG ALLOC] failed to get usable list (NUMA mismatch?)!\n");
+		ret = -WD_ENODEV;
+		goto out_free_list;
+	}
+
+	curr = used_list;
+	while (curr) {
+		dev = curr->dev;
+		if (WD_IS_ERR(dev) || !dev) {
+			curr = curr->next;
+			continue;
+		}
+
+		h_ctx = wd_request_ctx(dev);
+		if (h_ctx) {
+			*ctx = h_ctx;
+			WD_ERR("[DEBUG ALLOC] SUCCESS: h_ctx=%p\n", h_ctx);
+			ret = 0;
+			goto out_free_list;
+		}
+		WD_ERR("[DEBUG ALLOC] wd_request_ctx failed for dev=%s\n", dev->name);
+		curr = curr->next;
+	}
+
+	WD_ERR("[DEBUG ALLOC] all devices request ctx failed!\n");
+	ret = -WD_ENODEV;
+
+out_free_list:
+	if (used_list)
+		wd_free_list_accels(used_list);
+	if (dev_list)
+		wd_free_list_accels(dev_list);
+	return ret;
+}
+四、 重新编译与验证
+加上打印后，重新编译并运行：
+cd uadk_design && make clean && make -j$(nproc) && sudo make install && sudo ldconfig
+
+# 重置驱动（关键！）
+sudo rmmod hisi_zip && sudo modprobe hisi_zip
+
+# 运行测试
+export WD_COMP_CTX_NUM="sync-comp:8@0,sync-decomp:8@0"
+sudo -E ./uadk_tool benchmark --alg gzip --mode sva --opt 0 --sync --pktlen 4096 --seconds 5 --init2
+如何看日志破案？
+- 如果看到 [DEBUG ALLOC] failed to get device list! -> 说明 sysfs 里没设备，或者 Fallback 没生效。
+- 如果看到 [DEBUG ALLOC] failed to get usable list -> 说明 NUMA 节点配错了。
+- 如果看到 [DEBUG ALLOC] wd_request_ctx failed -> 说明 队列被占满了（available_instances=0），必须 rmmod 重置。
