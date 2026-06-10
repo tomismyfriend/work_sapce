@@ -1299,3 +1299,95 @@ int wd_do_comp_strm(handle_t h_sess, struct wd_comp_req *req)
 
 	return 0;
 }
+
+
+
+
+在 wd_comp.c 中找到 struct wd_comp_sess，增加用于记录固定 ctx 的字段：
+struct wd_comp_sess {
+	enum wd_comp_alg_type alg_type;
+	enum wd_comp_level comp_lv;
+	enum wd_comp_winsz_type win_sz;
+	enum wd_comp_strm_pos stream_pos;
+	__u32 isize;
+	__u32 checksum;
+	__u8 *ctx_buf;
+	void *sched_key;
+	struct wd_mm_ops mm_ops;
+	enum wd_mem_type mm_type;
+
+	/* ⭐ 新增：流模式 ctx 锚定字段 */
+	bool strm_ctx_fixed;       /* 是否已经锚定了 ctx */
+	__u32 strm_sync_ctx_idx;   /* 锚定的同步 ctx 索引 */
+};
+二、 在 wd_comp_alloc_sess 中初始化字段
+在分配 Session 时，确保新增字段被正确初始化：
+handle_t wd_comp_alloc_sess(struct wd_comp_sess_setup *setup)
+{
+	struct wd_comp_sess *sess;
+    // ... 前面的校验和内存分配逻辑 ...
+
+	sess = calloc(1, sizeof(struct wd_comp_sess));
+	if (!sess)
+		return (handle_t)0;
+
+	/* ⭐ 显式初始化锚定字段 */
+	sess->strm_ctx_fixed = false;
+	sess->strm_sync_ctx_idx = 0;
+
+    // ... 后续的 sched_init 等逻辑保持不变 ...
+三、 在 wd_comp_sync_job 内部实现锚定（不改签名）
+这是最核心的修改。我们不改变函数的入参，而是通过检查传入的 msg->stream_mode 来决定是走调度器轮询，还是使用锚定的 ctx。
+static int wd_comp_sync_job(struct wd_comp_sess *sess,
+			    struct wd_comp_req *req,
+			    struct wd_comp_msg *msg)
+{
+	struct wd_ctx_config_internal *config = &wd_comp_setting.config;
+	handle_t h_sched_ctx = wd_comp_setting.sched.h_sched_ctx;
+	struct wd_msg_handle msg_handle;
+	struct wd_ctx_internal *ctx;
+	__u32 idx;
+	int ret;
+
+	/* 
+	 * ═══ 核心适配：流模式强制锚定唯一 ctx，防止跑串 ═══ 
+	 * 当 msg->stream_mode 为 STATEFUL 时，说明是流模式。
+	 * 第一次进入时选定一个 ctx 并记住，后续永远使用该 ctx。
+	 */
+	if (msg->stream_mode == WD_COMP_STATEFUL) {
+		if (!sess->strm_ctx_fixed) {
+			/* 第一次流模式请求，让调度器选一个 ctx */
+			idx = wd_comp_setting.sched.pick_next_ctx(h_sched_ctx,
+								  sess->sched_key, CTX_MODE_SYNC);
+			if (unlikely(idx >= config->ctx_num))
+				return -WD_EINVAL;
+				
+			sess->strm_sync_ctx_idx = idx;
+			sess->strm_ctx_fixed = true;
+		} else {
+			/* 后续请求，直接使用锚定的 ctx */
+			idx = sess->strm_sync_ctx_idx;
+		}
+	} else {
+		/* 块模式（STATELESS）：正常走调度器 RR 轮询 */
+		idx = wd_comp_setting.sched.pick_next_ctx(h_sched_ctx,
+							  sess->sched_key, CTX_MODE_SYNC);
+	}
+
+	ret = wd_check_ctx(config, CTX_MODE_SYNC, idx);
+	if (unlikely(ret))
+		return ret;
+
+	wd_dfx_msg_cnt(config, WD_CTX_CNT_NUM, idx);
+	ctx = config->ctxs + idx;
+
+	msg_handle.send = ctx->drv->send;
+	msg_handle.recv = ctx->drv->recv;
+
+	pthread_spin_lock(&ctx->lock);
+	ret = wd_handle_msg_sync(&msg_handle, ctx->ctx, msg,
+				 NULL, config->epoll_en);
+	pthread_spin_unlock(&ctx->lock);
+
+	return ret;
+}
