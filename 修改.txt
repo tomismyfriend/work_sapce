@@ -547,3 +547,210 @@ wd_comp_setting.config.epoll_en = 1; // 强制开启
 3. sudo -E 跑 Epoll 模式，记录 CPU 和 Perf。
 4. 对比 CPU 是否大幅下降，Perf 是否基本保持。
 5. 加大 --pktlen 再次验证，排除小包干扰。
+
+
+
+
+
+
+
+一、 修改 wd_comp.c
+1. 扩展 Session 结构体（增加锚定字段）
+在 struct wd_comp_sess 中增加 3 个字段，用于记录流模式固定的 ctx：
+struct wd_comp_sess {
+	enum wd_comp_alg_type alg_type;
+	enum wd_comp_level comp_lv;
+	enum wd_comp_winsz_type win_sz;
+	enum wd_comp_strm_pos stream_pos;
+	__u32 isize;
+	__u32 checksum;
+	__u8 *ctx_buf;
+	void *sched_key;
+	struct wd_mm_ops mm_ops;
+	enum wd_mem_type mm_type;
+
+	/* ⭐ 新增：流模式 ctx 锚定字段 */
+	bool strm_ctx_fixed;       /* 是否已经锚定了 ctx */
+	__u32 strm_sync_ctx_idx;   /* 锚定的同步 ctx 索引 */
+	__u32 strm_async_ctx_idx;  /* 锚定的异步 ctx 索引 */
+};
+2. 在 wd_comp_alloc_sess 中初始化锚定字段
+在分配 sess 后，显式初始化这些字段（虽然 calloc 会清零，但显式写出来更清晰）：
+handle_t wd_comp_alloc_sess(struct wd_comp_sess_setup *setup)
+{
+	struct wd_comp_sess *sess;
+	int ret;
+
+	if (!setup)
+		return (handle_t)0;
+
+	ret = wd_comp_check_sess_params(setup);
+	if (ret)
+		return (handle_t)0;
+
+	sess = calloc(1, sizeof(struct wd_comp_sess));
+	if (!sess)
+		return (handle_t)0;
+
+	/* ⭐ 显式初始化锚定字段 */
+	sess->strm_ctx_fixed = false;
+	sess->strm_sync_ctx_idx = 0xFFFFFFFF;
+	sess->strm_async_ctx_idx = 0xFFFFFFFF;
+
+	/* Memory type set */
+	ret = wd_mem_ops_init(wd_comp_setting.config.ctxs[0].ctx, &setup->mm_ops, setup->mm_type);
+	if (ret) {
+		WD_ERR("failed to init memory ops!\n");
+		goto sess_err;
+	}
+
+	ret = wd_alloc_ctx_buf(&setup->mm_ops, sess);
+	if (ret)
+		goto sess_err;
+
+	sess->alg_type = setup->alg_type;
+	sess->comp_lv = setup->comp_lv;
+	sess->win_sz = setup->win_sz;
+	sess->stream_pos = WD_COMP_STREAM_NEW;
+
+	sess->mm_type = setup->mm_type;
+	memcpy(&sess->mm_ops, &setup->mm_ops, sizeof(struct wd_mm_ops));
+
+	/* Some simple scheduler don't need scheduling parameters */
+	sess->sched_key = (void *)wd_comp_setting.sched.sched_init(
+		     wd_comp_setting.sched.h_sched_ctx, setup->sched_param);
+	if (WD_IS_ERR(sess->sched_key)) {
+		WD_ERR("failed to init session schedule key!\n");
+		goto sched_err;
+	}
+
+	return (handle_t)sess;
+
+sched_err:
+	wd_free_ctx_buf(&setup->mm_ops, sess);
+sess_err:
+	free(sess);
+	return (handle_t)0;
+}
+3. 修改 wd_comp_sync_job（核心锚定逻辑）
+这是最关键的修改。当 msg->stream_mode == WD_COMP_STATEFUL 时，强制使用锚定的 ctx：
+static int wd_comp_sync_job(struct wd_comp_sess *sess,
+			    struct wd_comp_req *req,
+			    struct wd_comp_msg *msg)
+{
+	struct wd_ctx_config_internal *config = &wd_comp_setting.config;
+	handle_t h_sched_ctx = wd_comp_setting.sched.h_sched_ctx;
+	struct wd_msg_handle msg_handle;
+	struct wd_ctx_internal *ctx;
+	__u32 idx;
+	int ret;
+
+	/* ⭐ 核心适配：流模式强制锚定唯一 ctx，防止跑串 */
+	if (msg->stream_mode == WD_COMP_STATEFUL) {
+		if (!sess->strm_ctx_fixed) {
+			/* 第一次执行流模式，让调度器选一个 ctx，然后死死记住它 */
+			idx = wd_comp_setting.sched.pick_next_ctx(h_sched_ctx,
+								  sess->sched_key, CTX_MODE_SYNC);
+			if (unlikely(idx >= config->ctx_num))
+				return -WD_EINVAL;
+				
+			sess->strm_sync_ctx_idx = idx;
+			sess->strm_ctx_fixed = true;
+		} else {
+			/* 后续永远使用锚定的 ctx，不走调度器 */
+			idx = sess->strm_sync_ctx_idx;
+		}
+	} else {
+		/* 块模式（STATELESS）：正常走调度器轮询 */
+		idx = wd_comp_setting.sched.pick_next_ctx(h_sched_ctx,
+							  sess->sched_key, CTX_MODE_SYNC);
+	}
+
+	ret = wd_check_ctx(config, CTX_MODE_SYNC, idx);
+	if (unlikely(ret))
+		return ret;
+
+	wd_dfx_msg_cnt(config, WD_CTX_CNT_NUM, idx);
+	ctx = config->ctxs + idx;
+
+	msg_handle.send = ctx->drv->send;
+	msg_handle.recv = ctx->drv->recv;
+
+	pthread_spin_lock(&ctx->lock);
+	ret = wd_handle_msg_sync(&msg_handle, ctx->ctx, msg,
+				 NULL, config->epoll_en);
+	pthread_spin_unlock(&ctx->lock);
+
+	return ret;
+}
+4. 修改 wd_do_comp_async（异步流模式支持）
+虽然通常流模式只用同步接口（wd_do_comp_strm），但为了完整性，如果未来支持异步流模式，也需要加上锚定逻辑。当前代码写死了 msg->stream_mode = WD_COMP_STATELESS，如果用户传入流模式请求，这里需要支持。
+int wd_do_comp_async(handle_t h_sess, struct wd_comp_req *req)
+{
+	struct wd_ctx_config_internal *config = &wd_comp_setting.config;
+	struct wd_comp_sess *sess = (struct wd_comp_sess *)h_sess;
+	handle_t h_sched_ctx = wd_comp_setting.sched.h_sched_ctx;
+	struct wd_ctx_internal *ctx;
+	struct wd_comp_msg *msg;
+	int tag, ret;
+	__u32 idx;
+
+	ret = wd_comp_check_params(sess, req, CTX_MODE_ASYNC);
+	if (unlikely(ret))
+		return ret;
+
+	if (unlikely(!req->src_len)) {
+		WD_ERR("invalid: req src_len is 0!\n");
+		return -WD_EINVAL;
+	}
+
+	/* ⭐ 核心适配：异步流模式同样强制锚定唯一 ctx */
+	/* 注意：当前 wd_do_comp_async 只支持 STATELESS，如果未来支持 STATEFUL，需要在这里加上判断 */
+	/* 这里暂时保持原样，因为流模式通常只用同步接口 wd_do_comp_strm */
+	idx = wd_comp_setting.sched.pick_next_ctx(h_sched_ctx,
+						  sess->sched_key,
+						  CTX_MODE_ASYNC);
+	ret = wd_check_ctx(config, CTX_MODE_ASYNC, idx);
+	if (unlikely(ret))
+		return ret;
+
+	ctx = config->ctxs + idx;
+
+	tag = wd_get_msg_from_pool(&wd_comp_setting.pool, idx, (void **)&msg);
+	if (unlikely(tag < 0)) {
+		//WD_ERR("failed to get msg from pool!\n");
+		return -WD_EBUSY;
+	}
+	fill_comp_msg(sess, msg, req);
+	msg->tag = tag;
+	msg->stream_mode = WD_COMP_STATELESS;
+
+	ret = ctx->drv->send(ctx->ctx, msg);
+	if (unlikely(ret < 0)) {
+		if (ret != -WD_EBUSY)
+			WD_ERR("wd comp send error, ret = %d!\n", ret);
+
+		goto fail_with_msg;
+	}
+
+	wd_dfx_msg_cnt(config, WD_CTX_CNT_NUM, idx);
+
+	return 0;
+
+fail_with_msg:
+	wd_put_msg_to_pool(&wd_comp_setting.pool, idx, msg->tag);
+
+	return ret;
+}
+二、 验证步骤
+修改完成后，重新编译 UADK：
+cd uadk_design
+make clean && make -j$(nproc) && sudo make install && sudo ldconfig
+验证测试（故意传入多 ctx 验证防跑串）：
+# 流压缩 (故意传 4 个 ctx，验证是否会自动锚定到 1 个)
+sudo ./uadk_tool benchmark --alg gzip --mode sva --opt 2 --sync --pktlen 4096 --seconds 5 --thread 1 --ctxnum 4 --init2
+
+# 流解压
+sudo ./uadk_tool benchmark --alg gzip --mode sva --opt 3 --sync --pktlen 4096 --seconds 5 --thread 1 --ctxnum 4 --init2
+预期结果：
+即使你传入了 --ctxnum 4，流模式也绝对不会跑串，不会报 CRC 错误，程序完美运行！而如果你跑块模式（--opt 0），依然能看到 4 个 ctx 在轮询工作。
