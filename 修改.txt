@@ -754,3 +754,157 @@ sudo ./uadk_tool benchmark --alg gzip --mode sva --opt 2 --sync --pktlen 4096 --
 sudo ./uadk_tool benchmark --alg gzip --mode sva --opt 3 --sync --pktlen 4096 --seconds 5 --thread 1 --ctxnum 4 --init2
 预期结果：
 即使你传入了 --ctxnum 4，流模式也绝对不会跑串，不会报 CRC 错误，程序完美运行！而如果你跑块模式（--opt 0），依然能看到 4 个 ctx 在轮询工作。
+
+
+
+
+
+
+
+
+
+
+
+
+以下是具体的加打印方案，请直接修改 wd_comp.c 中的对应函数：
+一、 在 wd_comp_sync_job 中加打印（确认锚定是否生效）
+找到 wd_comp_sync_job 函数，在获取 idx 的逻辑中加入打印，确认每次请求是否真的使用了固定的 ctx。
+static int wd_comp_sync_job(struct wd_comp_sess *sess,
+			    struct wd_comp_req *req,
+			    struct wd_comp_msg *msg)
+{
+	struct wd_ctx_config_internal *config = &wd_comp_setting.config;
+	handle_t h_sched_ctx = wd_comp_setting.sched.h_sched_ctx;
+	struct wd_msg_handle msg_handle;
+	struct wd_ctx_internal *ctx;
+	__u32 idx;
+	int ret;
+
+	/* ⭐ 核心适配：流模式强制锚定唯一 ctx，防止跑串 */
+	if (msg->stream_mode == WD_COMP_STATEFUL) {
+		if (!sess->strm_ctx_fixed) {
+			idx = wd_comp_setting.sched.pick_next_ctx(h_sched_ctx,
+								  sess->sched_key, CTX_MODE_SYNC);
+			if (unlikely(idx >= config->ctx_num))
+				return -WD_EINVAL;
+				
+			sess->strm_sync_ctx_idx = idx;
+			sess->strm_ctx_fixed = true;
+			
+			/* ⭐ 新增打印：首次锚定 */
+			WD_ERR("[DEBUG STRM] First stream req, anchored idx=%u\n", idx);
+		} else {
+			idx = sess->strm_sync_ctx_idx;
+			/* ⭐ 新增打印：后续使用固定 idx */
+			WD_ERR("[DEBUG STRM] Reusing anchored idx=%u\n", idx);
+		}
+	} else {
+		idx = wd_comp_setting.sched.pick_next_ctx(h_sched_ctx,
+							  sess->sched_key, CTX_MODE_SYNC);
+		/* ⭐ 新增打印：块模式 */
+		WD_ERR("[DEBUG STRM] Stateless mode, picked idx=%u\n", idx);
+	}
+
+	ret = wd_check_ctx(config, CTX_MODE_SYNC, idx);
+	if (unlikely(ret))
+		return ret;
+
+	wd_dfx_msg_cnt(config, WD_CTX_CNT_NUM, idx);
+	ctx = config->ctxs + idx;
+
+	msg_handle.send = ctx->drv->send;
+	msg_handle.recv = ctx->drv->recv;
+
+	/* ⭐ 新增打印：提交给硬件前的关键参数 */
+	WD_ERR("[DEBUG STRM] Submit to HW: idx=%u, stream_mode=%u, stream_pos=%u, src_len=%u, last=%u\n",
+		idx, msg->stream_mode, msg->stream_pos, msg->req.src_len, msg->req.last);
+
+	pthread_spin_lock(&ctx->lock);
+	ret = wd_handle_msg_sync(&msg_handle, ctx->ctx, msg,
+				 NULL, config->epoll_en);
+	pthread_spin_unlock(&ctx->lock);
+
+	/* ⭐ 新增打印：硬件返回结果 */
+	WD_ERR("[DEBUG STRM] HW Return: ret=%d, status=%u, produced=%u, in_cons=%u\n",
+		ret, msg->req.status, msg->produced, msg->in_cons);
+
+	return ret;
+}
+二、 在 wd_do_comp_strm 中加打印（追踪分片循环）
+流模式在 wd_do_comp_strm 中是循环分片调用的。我们需要看看每次循环传给 wd_comp_sync_job 的参数是否正确。
+找到 wd_do_comp_strm 函数（约 894 行），在 do...while 循环内部加打印：
+int wd_do_comp_strm(handle_t h_sess, struct wd_comp_req *req)
+{
+	struct wd_comp_sess *sess = (struct wd_comp_sess *)h_sess;
+	struct wd_comp_msg msg = {0};
+	__u32 src_len;
+	int ret;
+
+	// ... 前面的校验代码 ...
+
+	fill_comp_msg(sess, &msg, req);
+	msg.stream_pos = sess->stream_pos;
+	msg.ctx_buf = sess->ctx_buf;
+	msg.isize = sess->isize;
+	msg.checksum = sess->checksum;
+	msg.req.last = req->last;
+	msg.stream_mode = WD_COMP_STATEFUL;
+
+	src_len = req->src_len;
+
+	/* ⭐ 新增打印：流模式入口参数 */
+	WD_ERR("[DEBUG STRM ENTRY] alg=%d, op=%d, src_len=%u, stream_pos=%u, ctx_buf=%p\n",
+		sess->alg_type, req->op_type, req->src_len, sess->stream_pos, sess->ctx_buf);
+
+	ret = wd_comp_sync_job(sess, req, &msg);
+	if (unlikely(ret))
+		return ret;
+
+	req->src_len = msg.in_cons;
+	req->dst_len = msg.produced;
+	req->status = msg.req.status;
+	sess->isize = msg.isize;
+	sess->checksum = msg.checksum;
+
+	sess->stream_pos = WD_COMP_STREAM_OLD;
+
+	wd_do_comp_strm_end_check(sess, req, src_len);
+	
+	/* ⭐ 新增打印：流模式出口状态 */
+	WD_ERR("[DEBUG STRM EXIT] new stream_pos=%u, produced=%u, status=%u\n",
+		sess->stream_pos, req->dst_len, req->status);
+
+	return 0;
+}
+三、 重新编译与运行验证
+修改完成后，重新编译 UADK：
+cd uadk_design
+make clean && make -j$(nproc) && sudo make install && sudo ldconfig
+运行流模式压缩测试（故意传多 ctx）：
+sudo ./uadk_tool benchmark --alg zlib --mode sva --opt 2 --sync \
+    --pktlen 4096 --seconds 2 --thread 1 --ctxnum 4 --init2
+四、 如何根据打印日志“破案”？
+运行后，请观察终端输出的 [DEBUG STRM] 日志，根据以下逻辑判断问题出在哪：
+嫌疑 A：锚定逻辑没生效（依然走了 RR 轮询）
+日志表现：
+[DEBUG STRM] First stream req, anchored idx=0
+[DEBUG STRM] Stateless mode, picked idx=1  <-- 致命！说明 msg->stream_mode 不是 STATEFUL
+结论：msg->stream_mode 没有被正确设置为 WD_COMP_STATEFUL，导致没进入锚定分支。需要检查 wd_do_comp_strm 中 msg.stream_mode = WD_COMP_STATEFUL; 是否被正确赋值。
+嫌疑 B：ctx_buf 为空或传错（最可能 💥）
+日志表现：
+[DEBUG STRM ENTRY] alg=0, op=0, src_len=4096, stream_pos=0, ctx_buf=(nil) <-- 致命！ctx_buf 是空的
+结论：流模式必须依赖 ctx_buf 来保存硬件的字典历史。如果 sess->ctx_buf 是 NULL，硬件无法保存状态，必然报 status=67。
+解决：检查 wd_comp_alloc_sess 中 wd_alloc_ctx_buf 是否成功分配了 ctx_buf。
+嫌疑 C：stream_pos 状态机错乱
+日志表现：
+[DEBUG STRM ENTRY] ... stream_pos=0 ...
+[DEBUG STRM EXIT] new stream_pos=1 ...
+[DEBUG STRM ENTRY] ... stream_pos=0 ... <-- 致命！第二包又变成了 NEW (0)
+结论：wd_do_comp_strm_end_check 错误地把 stream_pos 重置成了 WD_COMP_STREAM_NEW，导致硬件以为每次都是新流。
+嫌疑 D：硬件真的报错了（看 HW Return）
+日志表现：
+[DEBUG STRM] Submit to HW: idx=0, stream_mode=1, stream_pos=0, src_len=4096, last=0
+[DEBUG STRM] HW Return: ret=0, status=67, produced=2, in_cons=0
+结论：如果参数都对（stream_mode=1, ctx_buf 不为空），但硬件依然返回 status=67，说明硬件驱动层（hisi_comp.c）在处理流模式的 SQE 填充时存在 Bug（比如没有把 ctx_buf 的物理地址正确填入 SQE）。
+总结
+请加上这些打印跑一次，把 [DEBUG STRM] 相关的日志贴出来。只要看到 ctx_buf 是否为空，以及 idx 是否固定，就能 100% 锁定是代码逻辑问题还是底层驱动问题！
