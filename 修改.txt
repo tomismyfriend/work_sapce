@@ -1391,3 +1391,98 @@ static int wd_comp_sync_job(struct wd_comp_sess *sess,
 
 	return ret;
 }
+
+
+
+
+
+
+
+为了精准定位为什么硬件“一口都不吃”（in_cons=0）且报 status=0x1，我们需要在流模式的核心执行路径上加打印，看看喂给硬件的数据到底是什么，以及流模式的上下文状态（ctx_buf）是否正常。
+请在 wd_comp.c 中的以下两个函数加入打印代码：
+1. 在 wd_do_comp_strm 中加打印（查看输入数据和状态）
+找到 wd_do_comp_strm 函数（约 894 行），在调用 wd_comp_sync_job 之前加入以下打印：
+int wd_do_comp_strm(handle_t h_sess, struct wd_comp_req *req)
+{
+	struct wd_comp_sess *sess = (struct wd_comp_sess *)h_sess;
+	struct wd_comp_msg msg = {0};
+	__u32 src_len;
+	int ret;
+
+    // ... 前面的校验代码保持不变 ...
+
+	fill_comp_msg(sess, &msg, req);
+	msg.stream_pos = sess->stream_pos;
+	msg.ctx_buf = sess->ctx_buf;
+	msg.isize = sess->isize;
+	msg.checksum = sess->checksum;
+	msg.req.last = req->last;
+	msg.stream_mode = WD_COMP_STATEFUL;
+
+	src_len = req->src_len;
+
+	/* ═══ 新增打印：查看流模式入口的核心参数 ═══ */
+	WD_ERR("[DEBUG STRM] ENTRY: alg=%d, op=%d, src_len=%u, stream_pos=%u, ctx_buf=%p\n",
+		sess->alg_type, req->op_type, req->src_len, sess->stream_pos, sess->ctx_buf);
+
+	/* 打印输入数据的前 16 个字节，看看是不是全0或乱码 */
+	if (req->src && req->src_len >= 16 && req->data_fmt == WD_FLAT_BUF) {
+		unsigned char *p = (unsigned char *)req->src;
+		WD_ERR("[DEBUG STRM] src_head (16 bytes): %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+			p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
+			p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
+	} else {
+		WD_ERR("[DEBUG STRM] WARNING: src is NULL, src_len < 16, or SGL mode!\n");
+	}
+
+	ret = wd_comp_sync_job(sess, req, &msg);
+	if (unlikely(ret))
+		return ret;
+
+    // ... 后面的代码保持不变 ...
+2. 在 wd_comp_sync_job 中加打印（查看硬件真实返回）
+找到 wd_comp_sync_job 函数，在 pthread_spin_unlock 之后加入打印：
+static int wd_comp_sync_job(struct wd_comp_sess *sess,
+			    struct wd_comp_req *req,
+			    struct wd_comp_msg *msg)
+{
+    // ... 前面的获取 ctx、加锁、发送请求代码保持不变 ...
+
+	pthread_spin_lock(&ctx->lock);
+	ret = wd_handle_msg_sync(&msg_handle, ctx->ctx, msg,
+				 NULL, config->epoll_en);
+	pthread_spin_unlock(&ctx->lock);
+
+	/* ═══ 新增打印：查看硬件返回的真实状态 ═══ */
+	WD_ERR("[DEBUG STRM] HW RETURN: idx=%u, ret=%d, status=%u, produced=%u, in_cons=%u\n",
+		idx, ret, msg->req.status, msg->produced, msg->in_cons);
+
+	return ret;
+}
+三、 重新编译与运行
+修改后，必须重新编译：
+cd uadk_design
+make clean && make -j$(nproc) && sudo make install && sudo ldconfig
+运行流解压测试（确保先跑过 --opt 2 生成了文件）：
+sudo ./uadk_tool benchmark --alg deflate --mode sva --opt 3 --sync \
+    --pktlen 4096 --seconds 2 --ctxnum 1 --thread 1 --init2
+四、 如何根据打印结果“破案”？
+观察终端输出的 [DEBUG STRM] 日志：
+嫌疑 A：输入数据是全 0 或乱码（实锤数据问题）
+[DEBUG STRM] src_head (16 bytes): 00 00 00 00 00 00 00 00 ...
+结论：文件根本没读进来，或者文件是空的。硬件收到全 0 数据，必然报 0x1。
+解决：必须先跑 --opt 2 生成合法的压缩文件。
+嫌疑 B：数据格式不匹配（实锤算法用错）
+[DEBUG STRM] src_head (16 bytes): 78 9c ... 
+结论：78 9c 是 zlib 格式的 Header。如果你解压时用了 --alg deflate（Raw Deflate），硬件按 Raw 格式去解析 78 9c，必然报格式错误。
+解决：压缩和解压必须用同一个算法（都是 deflate，或都是 zlib）。
+嫌疑 C：ctx_buf 为空（实锤状态机断裂）
+[DEBUG STRM] ENTRY: ... ctx_buf=(nil) ...
+结论：流模式必须有上下文 Buffer，如果是 (nil)，硬件无法恢复字典，直接崩溃。
+解决：检查 wd_alloc_ctx_buf 是否成功分配了内存。
+嫌疑 D：参数全对，但硬件依然报错
+[DEBUG STRM] ENTRY: ... ctx_buf=0x7f..., stream_pos=0 ...
+[DEBUG STRM] src_head (16 bytes): 1a 2b 3c ... (正常的压缩乱码)
+[DEBUG STRM] HW RETURN: idx=0, ret=0, status=1, produced=0, in_cons=0
+结论：如果数据看起来是正常的压缩数据，且 ctx_buf 不为空，但硬件依然返回 status=1，说明底层驱动（hisi_comp.c）在填充 SQE 时，没有把 ctx_buf 的物理地址正确传给硬件，这是底层驱动的 Bug。
+加上这些打印跑一次，把 [DEBUG STRM] 的日志贴出来，我们就能 100% 锁定真凶
