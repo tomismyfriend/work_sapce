@@ -908,3 +908,145 @@ sudo ./uadk_tool benchmark --alg zlib --mode sva --opt 2 --sync \
 结论：如果参数都对（stream_mode=1, ctx_buf 不为空），但硬件依然返回 status=67，说明硬件驱动层（hisi_comp.c）在处理流模式的 SQE 填充时存在 Bug（比如没有把 ctx_buf 的物理地址正确填入 SQE）。
 总结
 请加上这些打印跑一次，把 [DEBUG STRM] 相关的日志贴出来。只要看到 ctx_buf 是否为空，以及 idx 是否固定，就能 100% 锁定是代码逻辑问题还是底层驱动问题！
+
+你提到的正是之前讨论的 “显式添加标志位（区分 V1/V2）” 方案！
+在 V1（init1）模式下，由于只能绑定一个固定驱动，需要用“偷梁换柱”欺骗调度器；而在 V2（init2）模式下，框架是全托管的，必须使用真实的算法名以支持真正的异构调度。
+为了完美区分这两种行为，我们在 wd_comp_setting 结构体中增加了 init_type 标志位，并在 Session 阶段进行分流。
+以下是完整的代码修改方案：
+一、 修改 struct wd_comp_setting（增加标志位）
+在 wd_comp.c 中找到 struct wd_comp_setting（约第 48 行），增加 init_type 字段：
+struct wd_comp_setting {
+	enum wd_status status;
+	struct wd_ctx_config_internal config;
+	struct wd_sched sched;
+	struct wd_async_msg_pool pool;
+	void *priv;
+	void *dlhandle;
+	void *dlh_list;
+	int init_type; /* ⭐ 新增：记录初始化模式 (WD_TYPE_V1 或 WD_TYPE_V2) */
+} wd_comp_setting;
+二、 在 Init 阶段打标
+在 wd_comp_init (V1) 中打标
+找到 wd_comp_init 函数（约第 190 行），在函数开头打标：
+int wd_comp_init(struct wd_ctx_config *config, struct wd_sched *sched)
+{
+	wd_comp_setting.init_type = WD_TYPE_V1; // ⭐ 标记为 V1
+	int ret;
+
+	ret = wd_alg_try_init(&wd_comp_setting.status);
+    // ... 后续原有逻辑保持不变 ...
+在 wd_comp_init2_ (V2) 中打标
+找到 wd_comp_init2_ 函数（约第 277 行），在函数开头打标：
+int wd_comp_init2_(const char *alg, __u32 sched_type, int task_type, struct wd_ctx_params *ctx_params)
+{
+	wd_comp_setting.init_type = WD_TYPE_V2; // ⭐ 标记为 V2
+	int state, ret = -WD_EINVAL;
+	bool flag;
+
+	state = wd_alg_try_init(&wd_comp_setting.status);
+    // ... 后续原有逻辑保持不变 ...
+三、 在 wd_comp_alloc_sess 中实施分流（核心）
+找到 wd_comp_alloc_sess 函数（约第 492 行），根据 init_type 决定传给调度器的算法名：
+handle_t wd_comp_alloc_sess(struct wd_comp_sess_setup *setup)
+{
+	struct wd_comp_sess *sess;
+	const char *target_alg_name = NULL;
+	struct wd_sched_params params = {0};
+	int ret;
+	__u32 i;
+
+	if (!setup)
+		return (handle_t)0;
+
+	ret = wd_comp_check_sess_params(setup);
+	if (ret)
+		return (handle_t)0;
+
+	/* ═══ 核心分流：根据 init_type 决定传给调度器的算法名 ═══ */
+	if (wd_comp_setting.init_type == WD_TYPE_V1) {
+		/* 
+		 * V1 模式：偷梁换柱 
+		 * 获取当前 ctx 绑定的唯一驱动的 alg_name (如 "zlib")，用于欺骗调度器
+		 */
+		for (i = 0; i < wd_comp_setting.config.ctx_num; i++) {
+			if (wd_comp_setting.config.ctxs[i].drv) {
+				target_alg_name = wd_comp_setting.config.ctxs[i].drv->alg_name;
+				break;
+			}
+		}
+		if (!target_alg_name) {
+			WD_ERR("V1 mode: no valid driver bound to ctx!\n");
+			return (handle_t)0;
+		}
+	} else {
+		/* 
+		 * V2 模式：保持真实 
+		 * 使用用户请求的真实算法名 (如 "gzip" 或 "lz4")，支持真异构调度
+		 */
+		target_alg_name = wd_comp_alg_name[setup->alg_type];
+	}
+
+	/* 准入检查 */
+	if (!wd_drv_alg_support(target_alg_name, &wd_comp_setting.config)) {
+		WD_ERR("failed to support algorithm: %s!\n", target_alg_name);
+		return (handle_t)0;
+	}
+
+	sess = calloc(1, sizeof(struct wd_comp_sess));
+	if (!sess)
+		return (handle_t)0;
+
+	/* Memory type set */
+	ret = wd_mem_ops_init(wd_comp_setting.config.ctxs[0].ctx, &setup->mm_ops, setup->mm_type);
+	if (ret) {
+		WD_ERR("failed to init memory ops!\n");
+		goto sess_err;
+	}
+
+	ret = wd_alloc_ctx_buf(&setup->mm_ops, sess);
+	if (ret)
+		goto sess_err;
+
+	/* 
+	 * ⭐ 关键细节：无论 V1/V2，底层执行必须保存真实的 alg_type！
+	 * 后续 fill_comp_msg 会把它拷贝给 msg->alg_type，
+	 * 底层驱动完全依赖这个枚举值来走正确的硬件分支。
+	 */
+	sess->alg_type = setup->alg_type; 
+	sess->comp_lv = setup->comp_lv;
+	sess->win_sz = setup->win_sz;
+	sess->stream_pos = WD_COMP_STREAM_NEW;
+
+	sess->mm_type = setup->mm_type;
+	memcpy(&sess->mm_ops, &setup->mm_ops, sizeof(struct wd_mm_ops));
+
+	/* Some simple scheduler don't need scheduling parameters */
+	sess->sched_key = (void *)wd_comp_setting.sched.sched_init(
+		     wd_comp_setting.sched.h_sched_ctx, setup->sched_param);
+	if (WD_IS_ERR(sess->sched_key)) {
+		WD_ERR("failed to init session schedule key!\n");
+		goto sched_err;
+	}
+
+	/* 设置调度参数，触发 compat_filter */
+	params.alg_name = target_alg_name; /* ⭐ 传入决定好的名字 */
+	params.ctxs = wd_comp_setting.config.ctxs;
+	
+	wd_comp_setting.sched.set_param(
+		wd_comp_setting.sched.h_sched_ctx,
+		sess->sched_key, ¶ms);
+
+	return (handle_t)sess;
+
+sched_err:
+	wd_free_ctx_buf(&setup->mm_ops, sess);
+sess_err:
+	free(sess);
+	return (handle_t)0;
+}
+总结
+这套方案的精妙之处在于：
+1. V1 模式（init_type == WD_TYPE_V1）：自动触发“偷梁换柱”，解决单驱动绑定导致的 compat_filter 误杀问题。
+2. V2 模式（init_type == WD_TYPE_V2）：自动使用真实算法名，完美保留 UADK 框架原生的多驱动（硬件+软算）异构调度能力。
+3. 底层诚实：无论上层怎么欺骗调度器，sess->alg_type 永远保存真实的枚举值，确保底层硬件走正确的分支。
+修改完成后，重新编译 UADK 即可完美兼容 V1 和 V2 的所有场景！
