@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect x="0" y="0" width="400" height="6" fill="url(#accent)"/>
+
+  <text x="120" y="120" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 48px; font-weight: bold; fill: #FFFFFF;">Token 概念与计费</text>
+  <rect x="120" y="140" width="200" height="4" fill="url(#accent)"/>
+
+  <!-- What is Token -->
+  <path d="M 120,200 Q 120,188 132,188 L 900,188 Q 912,188 912,200 L 912,480 Q 912,492 900,492 L 132,492 Q 120,492 120,480 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="170" y="235" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; font-weight: bold; fill: #00F5D4;">什么是 Token？</text>
+  <text x="170" y="280" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 17px; fill: #FFFFFF;">Token 是 LLM 处理文本的最小单位</text>
+  <text x="170" y="325" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">英文: 1 token ≈ 4 字符 ≈ 0.75 个单词</text>
+  <text x="170" y="360" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">中文: 1 个汉字 ≈ 1-2 个 token</text>
+  <text x="170" y="405" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #00F5D4;">示例: "你好世界" → [你, 好, 世, 界] = 4 tokens</text>
+  <text x="170" y="450" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">每次对话 = Input Tokens + Output Tokens</text>
+
+  <!-- Billing -->
+  <path d="M 960,200 Q 960,188 972,188 L 1788,188 Q 1800,188 1800,200 L 1800,480 Q 1800,492 1788,492 L 972,492 Q 960,492 960,480 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="1010" y="235" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; font-weight: bold; fill: #7B61FF;">计费模型</text>
+  <text x="1010" y="280" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 17px; fill: #FFFFFF;">按 Token 数量计费 (每百万 Token)</text>
+  <text x="1010" y="325" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">Input Token 价格 &lt; Output Token 价格</text>
+  <text x="1010" y="360" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">输出通常是输入的 2-4 倍价格</text>
+  <text x="1010" y="405" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #7B61FF;">Agent 场景: Token 消耗 = 普通对话的 10-100x</text>
+  <text x="1010" y="450" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">因为 Agent Loop 每轮都消耗 Input + Output</text>
+
+  <!-- Pricing table -->
+  <text x="960" y="560" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; font-weight: bold; fill: #FFFFFF;">主流模型价格参考 (每百万 Token)</text>
+
+  <!-- Table header -->
+  <path d="M 200,590 Q 200,582 208,582 L 1712,582 Q 1720,582 1720,590 L 1720,630 Q 1720,638 1712,638 L 208,638 Q 200,638 200,630 Z" fill="#7B61FF" fill-opacity="0.15"/>
+  <text x="400" y="618" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FFFFFF;">模型</text>
+  <text x="750" y="618" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FFFFFF;">Input 价格</text>
+  <text x="1100" y="618" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FFFFFF;">Output 价格</text>
+  <text x="1480" y="618" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FFFFFF;">上下文窗口</text>
+
+  <!-- Row 1 -->
+  <text x="400" y="675" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #00F5D4;">GPT-4o</text>
+  <text x="750" y="675" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">$2.50</text>
+  <text x="1100" y="675" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">$10.00</text>
+  <text x="1480" y="675" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">128K</text>
+
+  <!-- Row 2 -->
+  <text x="400" y="720" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #00F5D4;">Claude 3.5 Sonnet</text>
+  <text x="750" y="720" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">$3.00</text>
+  <text x="1100" y="720" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">$15.00</text>
+  <text x="1480" y="720" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">200K</text>
+
+  <!-- Row 3 -->
+  <text x="400" y="765" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #00F5D4;">DeepSeek V3</text>
+  <text x="750" y="765" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">$0.27</text>
+  <text x="1100" y="765" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">$1.10</text>
+  <text x="1480" y="765" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">128K</text>
+
+  <!-- Row 4 -->
+  <text x="400" y="810" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #00F5D4;">Qwen-Max</text>
+  <text x="750" y="810" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">$1.60</text>
+  <text x="1100" y="810" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">$5.00</text>
+  <text x="1480" y="810" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">128K</text>
+
+  <!-- Bottom tip -->
+  <text x="960" y="890" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FF6B6B;">⚠ Agent 开发中必须关注 Token 消耗，合理设计 Prompt 和上下文管理策略</text>
+
+  <text x="1870" y="1050" text-anchor="end" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">07/15</text>
+</svg>

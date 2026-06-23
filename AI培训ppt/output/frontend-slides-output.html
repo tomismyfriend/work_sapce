@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Agent 开发与智能编程工具实战</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+      media="print"
+      onload="this.media='all'" />
+<noscript>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" />
+</noscript>
+
+<style>
+/* ===========================================
+   CSS CUSTOM PROPERTIES (NEON CYBER THEME)
+   =========================================== */
+:root {
+  --bg-primary: #0a0f1c;
+  --bg-secondary: #0d1526;
+  --bg-card: rgba(13, 21, 38, 0.85);
+  --text-primary: #e8edf5;
+  --text-secondary: #7a8ba8;
+  --accent-cyan: #00ffcc;
+  --accent-magenta: #ff00aa;
+  --accent-cyan-dim: rgba(0, 255, 204, 0.15);
+  --accent-magenta-dim: rgba(255, 0, 170, 0.12);
+  --glow-cyan: 0 0 20px rgba(0, 255, 204, 0.35), 0 0 60px rgba(0, 255, 204, 0.1);
+  --glow-magenta: 0 0 20px rgba(255, 0, 170, 0.35), 0 0 60px rgba(255, 0, 170, 0.1);
+  --glow-cyan-sm: 0 0 8px rgba(0, 255, 204, 0.4);
+  --glow-magenta-sm: 0 0 8px rgba(255, 0, 170, 0.4);
+  --border-subtle: rgba(0, 255, 204, 0.12);
+  --border-accent: rgba(0, 255, 204, 0.3);
+
+  --font-display: "Orbitron", sans-serif;
+  --font-body: "Rajdhani", sans-serif;
+  --title-size: clamp(1.6rem, 5vw, 4rem);
+  --h2-size: clamp(1.1rem, 3vw, 2.2rem);
+  --h3-size: clamp(0.9rem, 2vw, 1.5rem);
+  --body-size: clamp(0.72rem, 1.35vw, 1.05rem);
+  --small-size: clamp(0.6rem, 0.95vw, 0.82rem);
+  --code-size: clamp(0.58rem, 0.9vw, 0.78rem);
+
+  --slide-padding: clamp(1.5rem, 4vw, 4rem);
+  --content-gap: clamp(0.6rem, 1.5vw, 1.5rem);
+  --element-gap: clamp(0.25rem, 0.8vw, 0.75rem);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-normal: 0.6s;
+}
+
+/* ===========================================
+   VIEWPORT FITTING: MANDATORY BASE STYLES
+   =========================================== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+html {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+.slide {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.slide-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-height: 100%;
+  overflow: hidden;
+  padding: var(--slide-padding);
+}
+
+.card, .container, .content-box {
+  max-width: min(90vw, 1000px);
+  max-height: min(80vh, 700px);
+}
+
+.feature-list, .bullet-list {
+  gap: clamp(0.4rem, 1vh, 1rem);
+}
+.feature-list li, .bullet-list li {
+  font-size: var(--body-size);
+  line-height: 1.4;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+img, .image-container {
+  max-width: 100%;
+  max-height: min(50vh, 400px);
+  object-fit: contain;
+}
+
+/* ===========================================
+   RESPONSIVE BREAKPOINTS
+   =========================================== */
+@media (max-height: 700px) {
+  :root {
+    --slide-padding: clamp(0.75rem, 3vw, 2rem);
+    --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+    --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+    --h2-size: clamp(0.9rem, 2.5vw, 1.6rem);
+  }
+}
+
+@media (max-height: 600px) {
+  :root {
+    --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+    --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+    --title-size: clamp(1.1rem, 4vw, 2rem);
+    --body-size: clamp(0.65rem, 1.1vw, 0.9rem);
+  }
+  .nav-dots, .keyboard-hint, .decorative { display: none; }
+}
+
+@media (max-height: 500px) {
+  :root {
+    --slide-padding: clamp(0.4rem, 2vw, 1rem);
+    --title-size: clamp(1rem, 3.5vw, 1.5rem);
+    --h2-size: clamp(0.85rem, 2.2vw, 1.2rem);
+    --body-size: clamp(0.6rem, 1vw, 0.82rem);
+  }
+}
+
+@media (max-width: 600px) {
+  :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+  .grid { grid-template-columns: 1fr; }
+  .two-col { flex-direction: column !important; }
+}
+
+@media (min-width: 1600px) {
+  :root {
+    --title-size: clamp(1.5rem, 5vw, 6rem);
+    --h2-size: clamp(1.25rem, 3.5vw, 3.5rem);
+    --h3-size: clamp(1rem, 2.5vw, 2.5rem);
+    --body-size: clamp(0.75rem, 1.5vw, 1.5rem);
+    --small-size: clamp(0.65rem, 1vw, 1.125rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.2s !important;
+  }
+  html { scroll-behavior: auto; }
+  .particle-canvas { display: none; }
+}
+
+/* ===========================================
+   GRID PATTERN BACKGROUND
+   =========================================== */
+.slide::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 255, 204, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 204, 0.03) 1px, transparent 1px);
+  background-size: clamp(30px, 4vw, 60px) clamp(30px, 4vw, 60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.slide > * { position: relative; z-index: 1; }
+
+/* ===========================================
+   PROGRESS BAR
+   =========================================== */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
+  box-shadow: var(--glow-cyan-sm);
+  z-index: 9999;
+  transition: width 0.3s var(--ease-out-expo);
+  width: 0%;
+}
+
+/* ===========================================
+   NAVIGATION DOTS
+   =========================================== */
+.nav-dots {
+  position: fixed;
+  right: clamp(0.5rem, 1.5vw, 1.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.3rem, 0.6vh, 0.6rem);
+  z-index: 9998;
+}
+
+.nav-dot {
+  width: clamp(6px, 0.6vw, 10px);
+  height: clamp(6px, 0.6vw, 10px);
+  border-radius: 50%;
+  background: rgba(0, 255, 204, 0.15);
+  border: 1px solid rgba(0, 255, 204, 0.25);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-dot:hover {
+  background: rgba(0, 255, 204, 0.4);
+  box-shadow: var(--glow-cyan-sm);
+}
+
+.nav-dot.active {
+  background: var(--accent-cyan);
+  box-shadow: var(--glow-cyan-sm);
+  transform: scale(1.3);
+}
+
+/* ===========================================
+   FULLSCREEN BUTTON
+   =========================================== */
+.fullscreen-btn {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  background: rgba(0, 255, 204, 0.06);
+  border: 1px solid rgba(0, 255, 204, 0.2);
+  border-radius: 8px;
+  color: rgba(0, 255, 204, 0.6);
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: background 0.2s, color 0.2s;
+}
+.fullscreen-btn:hover {
+  background: rgba(0, 255, 204, 0.12);
+  color: var(--accent-cyan);
+}
+
+/* ===========================================
+   REVEAL ANIMATIONS
+   =========================================== */
+.reveal {
+  opacity: 0;
+  transform: translateY(25px);
+  transition:
+    opacity var(--duration-normal) var(--ease-out-expo),
+    transform var(--duration-normal) var(--ease-out-expo);
+}
+
+.slide.visible .reveal {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.slide.visible .reveal:nth-child(1) { transition-delay: 0.05s; }
+.slide.visible .reveal:nth-child(2) { transition-delay: 0.12s; }
+.slide.visible .reveal:nth-child(3) { transition-delay: 0.19s; }
+.slide.visible .reveal:nth-child(4) { transition-delay: 0.26s; }
+.slide.visible .reveal:nth-child(5) { transition-delay: 0.33s; }
+.slide.visible .reveal:nth-child(6) { transition-delay: 0.40s; }
+.slide.visible .reveal:nth-child(7) { transition-delay: 0.47s; }
+.slide.visible .reveal:nth-child(8) { transition-delay: 0.54s; }
+
+/* ===========================================
+   TYPOGRAPHY
+   =========================================== */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+h1 { font-size: var(--title-size); line-height: 1.15; }
+h2 { font-size: var(--h2-size); line-height: 1.2; }
+h3 { font-size: var(--h3-size); line-height: 1.25; }
+
+p, li, span, td, th {
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: 1.55;
+}
+
+/* ===========================================
+   SECTION NUMBER
+   =========================================== */
+.section-num {
+  font-family: var(--font-display);
+  font-size: clamp(0.7rem, 1.2vw, 1rem);
+  font-weight: 800;
+  color: var(--accent-cyan);
+  text-shadow: var(--glow-cyan-sm);
+  letter-spacing: 0.15em;
+  margin-bottom: clamp(0.3rem, 0.8vh, 0.8rem);
+}
+
+/* ===========================================
+   NEON ACCENT ELEMENTS
+   =========================================== */
+.neon-text {
+  color: var(--accent-cyan);
+  text-shadow: var(--glow-cyan-sm);
+}
+
+.neon-magenta {
+  color: var(--accent-magenta);
+  text-shadow: var(--glow-magenta-sm);
+}
+
+.neon-line {
+  width: clamp(40px, 6vw, 100px);
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
+  box-shadow: var(--glow-cyan-sm);
+  margin: clamp(0.4rem, 1vh, 1rem) 0;
+}
+
+/* ===========================================
+   BULLETS (HANGING INDENT PATTERN)
+   =========================================== */
+.bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.35rem, 0.7vh, 0.7rem);
+}
+
+.bullets li {
+  position: relative;
+  padding-left: clamp(1.2rem, 2vw, 1.8rem);
+  font-size: var(--body-size);
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.bullets li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: clamp(0.5rem, 1vw, 0.9rem);
+  height: 2px;
+  background: var(--accent-cyan);
+  box-shadow: var(--glow-cyan-sm);
+}
+
+/* ===========================================
+   CODE BLOCKS
+   =========================================== */
+.code-block {
+  background: rgba(6, 10, 20, 0.9);
+  border: 1px solid var(--border-subtle);
+  border-radius: clamp(4px, 0.5vw, 8px);
+  padding: clamp(0.5rem, 1.2vw, 1rem) clamp(0.7rem, 1.5vw, 1.2rem);
+  font-family: "Courier New", monospace;
+  font-size: var(--code-size);
+  line-height: 1.6;
+  color: #b0c4de;
+  overflow: hidden;
+  max-height: min(45vh, 380px);
+}
+
+.code-block .kw { color: var(--accent-magenta); }
+.code-block .fn { color: var(--accent-cyan); }
+.code-block .str { color: #a8e6a3; }
+.code-block .cm { color: #5a6a7a; }
+.code-block .num { color: #ffaa55; }
+.code-block .op { color: #88a0b8; }
+
+/* ===========================================
+   TABLES
+   =========================================== */
+.neon-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--small-size);
+}
+
+.neon-table th {
+  font-family: var(--font-display);
+  font-size: var(--small-size);
+  font-weight: 600;
+  color: var(--accent-cyan);
+  text-align: left;
+  padding: clamp(0.3rem, 0.6vh, 0.6rem) clamp(0.5rem, 1vw, 1rem);
+  border-bottom: 1px solid var(--border-accent);
+  letter-spacing: 0.05em;
+}
+
+.neon-table td {
+  padding: clamp(0.25rem, 0.5vh, 0.5rem) clamp(0.5rem, 1vw, 1rem);
+  border-bottom: 1px solid rgba(0, 255, 204, 0.06);
+  color: var(--text-primary);
+  font-size: var(--small-size);
+}
+
+.neon-table tr:hover td {
+  background: rgba(0, 255, 204, 0.03);
+}
+
+/* ===========================================
+   CARDS
+   =========================================== */
+.neon-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: clamp(6px, 0.8vw, 12px);
+  padding: clamp(0.6rem, 1.2vw, 1.2rem);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.neon-card:hover {
+  border-color: var(--border-accent);
+  box-shadow: var(--glow-cyan);
+}
+
+/* ===========================================
+   FEATURE GRID
+   =========================================== */
+.feature-grid {
+  display: grid;
+  gap: clamp(0.4rem, 1vw, 0.8rem);
+}
+
+.feature-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.feature-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.feature-grid.cols-5 { grid-template-columns: repeat(5, 1fr); }
+
+@media (max-width: 700px) {
+  .feature-grid.cols-3,
+  .feature-grid.cols-5 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ===========================================
+   TWO COLUMN LAYOUT
+   =========================================== */
+.two-col {
+  display: flex;
+  gap: clamp(1rem, 3vw, 3rem);
+  align-items: flex-start;
+}
+
+.two-col > * { flex: 1; min-width: 0; }
+
+/* ===========================================
+   TIMELINE
+   =========================================== */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.3rem, 0.7vh, 0.6rem);
+  position: relative;
+  padding-left: clamp(1rem, 2vw, 2rem);
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--accent-cyan), var(--accent-magenta));
+  box-shadow: var(--glow-cyan-sm);
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: clamp(0.5rem, 1vw, 1rem);
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * clamp(1rem, 2vw, 2rem) + clamp(-3px, -0.3vw, -5px));
+  top: 0.5em;
+  width: clamp(6px, 0.6vw, 10px);
+  height: clamp(6px, 0.6vw, 10px);
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: var(--glow-cyan-sm);
+}
+
+.timeline-year {
+  font-family: var(--font-display);
+  font-size: var(--small-size);
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.timeline-text {
+  font-size: var(--body-size);
+  color: var(--text-primary);
+}
+
+/* ===========================================
+   ARCHITECTURE DIAGRAM
+   =========================================== */
+.arch-box {
+  border: 1px solid var(--border-accent);
+  border-radius: clamp(4px, 0.5vw, 8px);
+  padding: clamp(0.4rem, 0.8vw, 0.8rem);
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: var(--small-size);
+  font-weight: 600;
+  background: var(--bg-card);
+}
+
+.arch-box.accent {
+  border-color: var(--accent-cyan);
+  box-shadow: inset 0 0 20px rgba(0, 255, 204, 0.05);
+  color: var(--accent-cyan);
+}
+
+.arch-box.magenta {
+  border-color: var(--accent-magenta);
+  box-shadow: inset 0 0 20px rgba(255, 0, 170, 0.05);
+  color: var(--accent-magenta);
+}
+
+.arch-label {
+  font-size: var(--small-size);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-weight: 400;
+  margin-top: 0.2em;
+}
+
+/* ===========================================
+   PIPELINE FLOW
+   =========================================== */
+.pipeline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.3rem, 0.8vw, 0.6rem);
+  flex-wrap: nowrap;
+}
+
+.pipeline-node {
+  padding: clamp(0.3rem, 0.6vw, 0.6rem) clamp(0.6rem, 1.2vw, 1rem);
+  background: var(--bg-card);
+  border: 1px solid var(--border-accent);
+  border-radius: clamp(4px, 0.4vw, 6px);
+  font-size: var(--small-size);
+  font-weight: 600;
+  color: var(--accent-cyan);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.pipeline-arrow {
+  color: var(--accent-magenta);
+  font-size: var(--body-size);
+  flex-shrink: 0;
+}
+
+/* ===========================================
+   QUOTE / HIGHLIGHT BOX
+   =========================================== */
+.neon-quote {
+  border-left: 3px solid var(--accent-cyan);
+  padding: clamp(0.4rem, 0.8vh, 0.8rem) clamp(0.6rem, 1.2vw, 1.2rem);
+  background: rgba(0, 255, 204, 0.04);
+  border-radius: 0 clamp(4px, 0.4vw, 6px) clamp(4px, 0.4vw, 6px) 0;
+  font-size: var(--body-size);
+  color: var(--text-primary);
+  font-weight: 500;
+  box-shadow: inset 3px 0 15px rgba(0, 255, 204, 0.05);
+}
+
+/* ===========================================
+   PARTICLE CANVAS
+   =========================================== */
+.particle-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* ===========================================
+   TITLE SLIDE SPECIAL
+   =========================================== */
+.title-slide {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.title-slide .slide-content {
+  align-items: center;
+  justify-content: center;
+}
+
+.title-glow {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 30px rgba(0, 255, 204, 0.2));
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-size: var(--h3-size);
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-top: clamp(0.5rem, 1.5vh, 1.5rem);
+  letter-spacing: 0.03em;
+}
+
+/* ===========================================
+   SLIDE NUMBER BADGE
+   =========================================== */
+.slide-badge {
+  position: absolute;
+  top: clamp(0.8rem, 2vh, 1.5rem);
+  left: var(--slide-padding);
+  font-family: var(--font-display);
+  font-size: clamp(0.55rem, 0.8vw, 0.75rem);
+  font-weight: 800;
+  color: var(--accent-cyan);
+  text-shadow: var(--glow-cyan-sm);
+  letter-spacing: 0.2em;
+  opacity: 0.6;
+}
+
+/* ===========================================
+   COMPARISON BLOCKS
+   =========================================== */
+.compare-row {
+  display: flex;
+  gap: clamp(0.5rem, 1.5vw, 1.5rem);
+}
+
+.compare-block {
+  flex: 1;
+  padding: clamp(0.5rem, 1vw, 1rem);
+  border-radius: clamp(4px, 0.5vw, 8px);
+  border: 1px solid;
+}
+
+.compare-block.old {
+  border-color: rgba(255, 0, 170, 0.2);
+  background: rgba(255, 0, 170, 0.04);
+}
+
+.compare-block.new {
+  border-color: rgba(0, 255, 204, 0.2);
+  background: rgba(0, 255, 204, 0.04);
+}
+
+.compare-label {
+  font-family: var(--font-display);
+  font-size: var(--small-size);
+  font-weight: 700;
+  margin-bottom: clamp(0.2rem, 0.4vh, 0.4rem);
+}
+
+.compare-block.old .compare-label { color: var(--accent-magenta); }
+.compare-block.new .compare-label { color: var(--accent-cyan); }
+
+/* ===========================================
+   LOOP DIAGRAM
+   =========================================== */
+.loop-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.3rem, 0.5vh, 0.5rem);
+}
+
+.loop-step {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.4rem, 0.8vw, 0.8rem);
+  font-size: var(--body-size);
+}
+
+.loop-icon {
+  width: clamp(1.8rem, 3vw, 2.8rem);
+  height: clamp(1.8rem, 3vw, 2.8rem);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.7rem, 1.2vw, 1rem);
+  flex-shrink: 0;
+  border: 1px solid var(--border-accent);
+  background: var(--bg-card);
+}
+
+.loop-arrow-down {
+  color: var(--accent-cyan);
+  font-size: var(--body-size);
+  opacity: 0.5;
+}
+</style>
+</head>
+<body>
+
+<canvas class="particle-canvas" id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+<nav class="nav-dots" id="navDots"></nav>
+<button class="fullscreen-btn" id="fullscreenBtn" title="Fullscreen (F)">&#x26F6;</button>
+
+<!-- ============================================
+     SLIDE 1: TITLE
+     ============================================ -->
+<section class="slide title-slide">
+  <div class="slide-content">
+    <div class="reveal" style="margin-bottom: clamp(0.5rem, 1.5vh, 1.5rem);">
+      <span style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); letter-spacing: 0.3em; text-shadow: var(--glow-cyan-sm);">AI AGENT TRAINING</span>
+    </div>
+    <h1 class="reveal title-glow" style="max-width: 80vw;">AI Agent 开发<br/>与智能编程工具实战</h1>
+    <div class="neon-line reveal" style="margin: clamp(0.8rem, 2vh, 1.5rem) auto;"></div>
+    <p class="reveal subtitle">从原理到落地，理解 AI Agent 如何独立完成任务</p>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 2: AGENDA
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">02</span>
+  <div class="slide-content">
+    <div class="section-num reveal">AGENDA</div>
+    <h2 class="reveal">课程结构</h2>
+    <div class="neon-line reveal"></div>
+    <div class="feature-grid cols-3 reveal" style="margin-top: var(--content-gap);">
+      <div class="neon-card">
+        <div style="font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2.5rem); font-weight: 900; color: var(--accent-cyan); text-shadow: var(--glow-cyan); margin-bottom: 0.3em;">总</div>
+        <h3 style="color: var(--accent-cyan); margin-bottom: 0.3em;">整体认知</h3>
+        <ul class="bullets">
+          <li>为什么关注 AI Agent</li>
+          <li>什么是 AI Agent</li>
+          <li>Agent 系统架构</li>
+        </ul>
+      </div>
+      <div class="neon-card">
+        <div style="font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2.5rem); font-weight: 900; color: var(--accent-magenta); text-shadow: var(--glow-magenta); margin-bottom: 0.3em;">分</div>
+        <h3 style="color: var(--accent-magenta); margin-bottom: 0.3em;">核心原理</h3>
+        <ul class="bullets">
+          <li>LLM 与 Token 基础</li>
+          <li>五大特征详解</li>
+          <li>核心机制与实现</li>
+        </ul>
+      </div>
+      <div class="neon-card">
+        <div style="font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2.5rem); font-weight: 900; color: var(--accent-cyan); text-shadow: var(--glow-cyan); margin-bottom: 0.3em;">实战</div>
+        <h3 style="color: var(--accent-cyan); margin-bottom: 0.3em;">编程工具</h3>
+        <ul class="bullets">
+          <li>AI 编程工具对比</li>
+          <li>高效使用技巧</li>
+          <li>总结与 Q&A</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 3: WHY AI AGENT
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">03</span>
+  <div class="slide-content">
+    <div class="section-num reveal">01 &mdash; OVERVIEW</div>
+    <h2 class="reveal">为什么现在要关注 AI Agent？</h2>
+    <div class="neon-line reveal"></div>
+    <div class="two-col reveal" style="margin-top: var(--content-gap);">
+      <div>
+        <h3 style="color: var(--accent-cyan); margin-bottom: clamp(0.3rem, 0.6vh, 0.6rem);">演进时间线</h3>
+        <div class="timeline">
+          <div class="timeline-item">
+            <span class="timeline-year">2023</span>
+            <p class="timeline-text">ChatGPT 引爆大模型 &mdash; 人人都在"和 AI 聊天"</p>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-year">2024</span>
+            <p class="timeline-text">Copilot / Cursor &mdash; AI 深入编程工作流</p>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-year">2025-26</span>
+            <p class="timeline-text">AI Agent &mdash; AI 不再只是回答问题，而是<span class="neon-text">自主完成任务</span></p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color: var(--accent-magenta); margin-bottom: clamp(0.3rem, 0.6vh, 0.6rem);">直观对比</h3>
+        <div class="compare-row" style="flex-direction: column; gap: clamp(0.3rem, 0.6vh, 0.6rem);">
+          <div class="compare-block old">
+            <div class="compare-label">传统 AI</div>
+            <p style="font-size: var(--small-size);">"帮我查天气" &rarr; "你可以打开天气App"</p>
+          </div>
+          <div class="compare-block new">
+            <div class="compare-label">AI Agent</div>
+            <p style="font-size: var(--small-size);">"查天气，下雨就提醒" &rarr; 调用API &rarr; "小雨18&deg;C，记得带伞！"</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="neon-quote reveal" style="margin-top: var(--content-gap);">
+      AI Agent 是大模型从"玩具"到"工具"的关键跳板
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 4: WHAT IS AGENT
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">04</span>
+  <div class="slide-content">
+    <div class="section-num reveal">02 &mdash; CONCEPT</div>
+    <h2 class="reveal">什么是 AI Agent？</h2>
+    <div class="neon-line reveal"></div>
+    <div class="neon-quote reveal" style="margin: var(--content-gap) 0;">
+      AI Agent = LLM + <span class="neon-text">感知</span> + <span class="neon-text">行动</span> + <span class="neon-text">记忆</span> + <span class="neon-text">规划</span> + <span class="neon-text">循环执行</span>
+    </div>
+    <p class="reveal" style="color: var(--text-secondary); margin-bottom: var(--content-gap);">一个能够感知环境、自主决策、调用工具、完成任务的智能程序</p>
+    <div class="feature-grid cols-5 reveal">
+      <div class="neon-card" style="text-align: center;">
+        <div style="font-size: clamp(1.2rem, 2vw, 1.8rem); margin-bottom: 0.3em;">&#x1F441;</div>
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700;">感知</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">主动获取信息</div>
+      </div>
+      <div class="neon-card" style="text-align: center;">
+        <div style="font-size: clamp(1.2rem, 2vw, 1.8rem); margin-bottom: 0.3em;">&#x26A1;</div>
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700;">行动</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">执行真实操作</div>
+      </div>
+      <div class="neon-card" style="text-align: center;">
+        <div style="font-size: clamp(1.2rem, 2vw, 1.8rem); margin-bottom: 0.3em;">&#x1F9E0;</div>
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-magenta); font-weight: 700;">记忆</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">短期 + 长期</div>
+      </div>
+      <div class="neon-card" style="text-align: center;">
+        <div style="font-size: clamp(1.2rem, 2vw, 1.8rem); margin-bottom: 0.3em;">&#x1F5FA;</div>
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-magenta); font-weight: 700;">规划</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">任务拆解调整</div>
+      </div>
+      <div class="neon-card" style="text-align: center;">
+        <div style="font-size: clamp(1.2rem, 2vw, 1.8rem); margin-bottom: 0.3em;">&#x1F504;</div>
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700;">循环</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">持续推进完成</div>
+      </div>
+    </div>
+    <p class="reveal" style="color: var(--text-secondary); margin-top: var(--content-gap); font-size: var(--small-size); text-align: center;">
+      LLM 只提供"决策大脑"，Agent 框架补齐执行力
+    </p>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 5: AGENT ARCHITECTURE
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">05</span>
+  <div class="slide-content">
+    <div class="section-num reveal">03 &mdash; ARCHITECTURE</div>
+    <h2 class="reveal">Agent 系统架构</h2>
+    <div class="neon-line reveal"></div>
+    <div class="reveal" style="margin-top: var(--content-gap); display: flex; flex-direction: column; gap: clamp(0.3rem, 0.6vh, 0.6rem); align-items: center;">
+      <div class="arch-box accent" style="width: min(85%, 700px);">
+        <div>编排层 / 控制器 (Agent Loop)</div>
+        <div class="arch-label">while not done: response = LLM(messages, tools)</div>
+      </div>
+      <div style="color: var(--accent-cyan); font-size: var(--body-size); opacity: 0.5;">&#x25BC;</div>
+      <div style="display: flex; gap: clamp(0.4rem, 1vw, 1rem); width: min(90%, 750px); justify-content: center;">
+        <div class="arch-box" style="flex: 1;">
+          <div style="color: var(--accent-cyan);">感知层</div>
+          <div class="arch-label">文件 &bull; Shell &bull; API &bull; Web</div>
+        </div>
+        <div class="arch-box" style="flex: 1;">
+          <div style="color: var(--accent-cyan);">工具执行器</div>
+          <div class="arch-label">MCP &bull; 代码 &bull; 浏览器 &bull; 文件</div>
+        </div>
+        <div class="arch-box" style="flex: 1;">
+          <div style="color: var(--accent-magenta);">记忆管理器</div>
+          <div class="arch-label">消息历史 &bull; 向量DB &bull; 工作记忆</div>
+        </div>
+      </div>
+      <div style="color: var(--accent-magenta); font-size: var(--body-size); opacity: 0.5;">&#x25BC;</div>
+      <div class="arch-box magenta" style="width: min(85%, 700px);">
+        <div>大脑 (LLM) + 规划器 (Planner)</div>
+        <div class="arch-label">推理决策 &bull; 任务拆解 &bull; 自我反思</div>
+      </div>
+    </div>
+    <div class="neon-quote reveal" style="margin-top: var(--content-gap);">
+      Agent = LLM (大脑) + 5 个功能模块，LLM 只负责决策，其他由框架提供
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 6: WHAT IS LLM
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">06</span>
+  <div class="slide-content">
+    <div class="section-num reveal">04 &mdash; LLM</div>
+    <h2 class="reveal">什么是 LLM？</h2>
+    <div class="neon-line reveal"></div>
+    <p class="reveal" style="color: var(--text-secondary);">大语言模型 &mdash; 本质是一个<span class="neon-text">下一个词预测器</span></p>
+    <div class="two-col reveal" style="margin-top: var(--content-gap);">
+      <div>
+        <h3 style="color: var(--accent-cyan); margin-bottom: clamp(0.2rem, 0.5vh, 0.5rem); font-size: var(--small-size);">三阶段训练</h3>
+        <div style="display: flex; flex-direction: column; gap: clamp(0.2rem, 0.5vh, 0.5rem);">
+          <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+            <div style="color: var(--accent-cyan); font-family: var(--font-display); font-size: var(--small-size); font-weight: 700;">1. 预训练</div>
+            <div style="font-size: var(--small-size); color: var(--text-secondary);">万亿级文本，预测下一个词</div>
+          </div>
+          <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+            <div style="color: var(--accent-cyan); font-family: var(--font-display); font-size: var(--small-size); font-weight: 700;">2. 监督微调 (SFT)</div>
+            <div style="font-size: var(--small-size); color: var(--text-secondary);">高质量问答对，学会"回答问题"</div>
+          </div>
+          <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+            <div style="color: var(--accent-magenta); font-family: var(--font-display); font-size: var(--small-size); font-weight: 700;">3. 偏好对齐 (RLHF)</div>
+            <div style="font-size: var(--small-size); color: var(--text-secondary);">人类偏好排序，遵循复杂指令</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color: var(--accent-magenta); margin-bottom: clamp(0.2rem, 0.5vh, 0.5rem); font-size: var(--small-size);">三个关键能力</h3>
+        <table class="neon-table">
+          <tr><th>能力</th><th>对 Agent 的意义</th></tr>
+          <tr><td style="color: var(--accent-cyan);">通用推理</td><td>充当决策大脑</td></tr>
+          <tr><td style="color: var(--accent-cyan);">上下文学习</td><td>动态定义行为模式</td></tr>
+          <tr><td style="color: var(--accent-cyan);">指令遵循</td><td>可靠执行工具调用</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="neon-quote reveal" style="margin-top: var(--content-gap);">
+      LLM 本身只会"生成文本" &mdash; 没有手、没有脚、没有记忆
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 7: WHAT IS TOKEN
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">07</span>
+  <div class="slide-content">
+    <div class="section-num reveal">05 &mdash; TOKEN</div>
+    <h2 class="reveal">什么是 Token？</h2>
+    <div class="neon-line reveal"></div>
+    <p class="reveal" style="color: var(--text-secondary);">Token = <span class="neon-text">词表中一个条目的 ID</span> = 大模型处理文本的最小单位</p>
+    <div class="two-col reveal" style="margin-top: var(--content-gap);">
+      <div>
+        <h3 style="color: var(--accent-cyan); margin-bottom: clamp(0.2rem, 0.4vh, 0.4rem); font-size: var(--small-size);">Token 计数示例</h3>
+        <table class="neon-table">
+          <tr><th>文本类型</th><th>示例</th><th>Token 数</th></tr>
+          <tr><td>常见汉字</td><td>"你好"</td><td style="color: var(--accent-cyan);">2</td></tr>
+          <tr><td>英文单词</td><td>"hello"</td><td style="color: var(--accent-cyan);">1</td></tr>
+          <tr><td>长英文词</td><td>"unbelievable"</td><td style="color: var(--accent-magenta);">3</td></tr>
+          <tr><td>代码</td><td>"def fact(n):"</td><td style="color: var(--accent-magenta);">6</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3 style="color: var(--accent-magenta); margin-bottom: clamp(0.2rem, 0.4vh, 0.4rem); font-size: var(--small-size);">控制成本</h3>
+        <table class="neon-table">
+          <tr><th>策略</th><th>效果</th></tr>
+          <tr><td>简单任务用小模型</td><td style="color: var(--accent-cyan);">-90%</td></tr>
+          <tr><td>精简 Prompt</td><td style="color: var(--accent-cyan);">-75%</td></tr>
+          <tr><td>缓存重复请求</td><td style="color: var(--accent-cyan);">零费用</td></tr>
+          <tr><td>Batch API</td><td style="color: var(--accent-cyan);">-50%</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="neon-quote reveal" style="margin-top: var(--content-gap);">
+      Token 是 AI 时代的"计量单位"。选对模型 + 精简输入 + 缓存复用 = 成本降低 50-80%
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 8: WHY LLM CAN'T ACT
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">08</span>
+  <div class="slide-content">
+    <div class="section-num reveal">06 &mdash; LIMITATION</div>
+    <h2 class="reveal">为什么 LLM 不能直接"操作"？</h2>
+    <div class="neon-line reveal"></div>
+    <div class="code-block reveal" style="margin: var(--content-gap) 0; text-align: center; font-size: var(--body-size);">
+      LLM = <span class="fn">f</span>(<span class="str">text_in</span>) &rarr; <span class="str">text_out</span> &nbsp;&nbsp; <span class="cm">// 就这样。没有 IO，没有网络，没有数据库</span>
+    </div>
+    <table class="neon-table reveal">
+      <tr><th>限制</th><th>原因</th><th>影响</th></tr>
+      <tr><td style="color: var(--accent-magenta);">无 IO 能力</td><td>只有矩阵运算</td><td>不能读写文件</td></tr>
+      <tr><td style="color: var(--accent-magenta);">无状态</td><td>每次调用独立</td><td>不记住上次对话</td></tr>
+      <tr><td style="color: var(--accent-magenta);">无执行环境</td><td>运行在 GPU 上</td><td>不能运行代码</td></tr>
+      <tr><td style="color: var(--accent-magenta);">单次输出</td><td>一次只生成一段文本</td><td>不能分步执行</td></tr>
+      <tr><td style="color: var(--accent-magenta);">知识截止</td><td>训练数据有截止日</td><td>不知道最新信息</td></tr>
+    </table>
+    <div class="neon-quote reveal" style="margin-top: var(--content-gap);">
+      LLM 提供智能，Agent 提供执行力。没有 Agent 框架，LLM 只是"纸上谈兵"的天才
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 9: PERCEPTION
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">09</span>
+  <div class="slide-content">
+    <div class="section-num reveal">07 &mdash; PERCEPTION</div>
+    <h2 class="reveal">感知能力 <span class="neon-text">Perception</span></h2>
+    <div class="neon-line reveal"></div>
+    <p class="reveal" style="color: var(--text-secondary); margin-bottom: var(--content-gap);">Agent 能主动获取环境信息，而非只依赖用户输入</p>
+    <div class="feature-grid cols-5 reveal">
+      <div class="neon-card" style="text-align: center; padding: clamp(0.4rem, 0.8vw, 0.8rem);">
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700; margin-bottom: 0.3em;">文件系统</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">读取代码<br/>遍历目录<br/>监控变化</div>
+      </div>
+      <div class="neon-card" style="text-align: center; padding: clamp(0.4rem, 0.8vw, 0.8rem);">
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700; margin-bottom: 0.3em;">系统命令</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">git status<br/>进程信息<br/>CPU/内存</div>
+      </div>
+      <div class="neon-card" style="text-align: center; padding: clamp(0.4rem, 0.8vw, 0.8rem);">
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-magenta); font-weight: 700; margin-bottom: 0.3em;">API 调用</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">天气/股票<br/>数据库查询<br/>第三方服务</div>
+      </div>
+      <div class="neon-card" style="text-align: center; padding: clamp(0.4rem, 0.8vw, 0.8rem);">
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-magenta); font-weight: 700; margin-bottom: 0.3em;">网络内容</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">网页爬取<br/>RSS 订阅<br/>搜索引擎</div>
+      </div>
+      <div class="neon-card" style="text-align: center; padding: clamp(0.4rem, 0.8vw, 0.8rem);">
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700; margin-bottom: 0.3em;">事件监听</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">Webhook<br/>消息队列<br/>定时任务</div>
+      </div>
+    </div>
+    <div class="two-col reveal" style="margin-top: var(--content-gap);">
+      <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+        <span style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700;">固定模式</span>
+        <span style="font-size: var(--small-size); color: var(--text-secondary);"> &mdash; 预定义步骤，稳定可预测</span>
+      </div>
+      <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+        <span style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-magenta); font-weight: 700;">动态模式</span>
+        <span style="font-size: var(--small-size); color: var(--text-secondary);"> &mdash; LLM 自主决定，灵活智能</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 10: ACTION
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">10</span>
+  <div class="slide-content">
+    <div class="section-num reveal">08 &mdash; ACTION</div>
+    <h2 class="reveal">行动能力 <span class="neon-magenta">Function Calling</span></h2>
+    <div class="neon-line reveal"></div>
+    <div class="reveal" style="margin: var(--content-gap) 0;">
+      <div class="pipeline">
+        <div class="pipeline-node">定义工具<br/><span style="font-size: var(--small-size); color: var(--text-secondary);">JSON Schema</span></div>
+        <div class="pipeline-arrow">&rarr;</div>
+        <div class="pipeline-node">LLM 推理<br/><span style="font-size: var(--small-size); color: var(--text-secondary);">决策调用</span></div>
+        <div class="pipeline-arrow">&rarr;</div>
+        <div class="pipeline-node">输出结构化指令<br/><span style="font-size: var(--small-size); color: var(--text-secondary);">JSON</span></div>
+        <div class="pipeline-arrow">&rarr;</div>
+        <div class="pipeline-node">框架执行<br/><span style="font-size: var(--small-size); color: var(--text-secondary);">真实操作</span></div>
+        <div class="pipeline-arrow">&rarr;</div>
+        <div class="pipeline-node">结果回传<br/><span style="font-size: var(--small-size); color: var(--text-secondary);">闭环</span></div>
+      </div>
+    </div>
+    <div class="two-col reveal">
+      <div>
+        <h3 style="color: var(--accent-cyan); margin-bottom: clamp(0.2rem, 0.4vh, 0.4rem); font-size: var(--small-size);">行动方式</h3>
+        <ul class="bullets">
+          <li>文件操作 &mdash; 创建、读取、修改、删除</li>
+          <li>代码执行 &mdash; Python / Shell / SQL</li>
+          <li>API 调用 &mdash; 邮件、工单、第三方</li>
+          <li>浏览器操作 &mdash; 点击、填写、爬取</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color: var(--accent-magenta); margin-bottom: clamp(0.2rem, 0.4vh, 0.4rem); font-size: var(--small-size);">MCP = 标准接口</h3>
+        <p style="font-size: var(--small-size); color: var(--text-secondary);">MCP (Model Context Protocol) 是工具接入的标准化协议，让所有 AI 模型通用接入所有外部工具</p>
+      </div>
+    </div>
+    <div class="neon-quote reveal" style="margin-top: var(--content-gap);">
+      LLM 只负责"决策"，Agent 框架负责"执行"
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 11: MEMORY SYSTEM
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">11</span>
+  <div class="slide-content">
+    <div class="section-num reveal">09 &mdash; MEMORY</div>
+    <h2 class="reveal">记忆系统 <span class="neon-text">Memory</span></h2>
+    <div class="neon-line reveal"></div>
+    <div class="feature-grid cols-3 reveal" style="margin-top: var(--content-gap);">
+      <div class="neon-card">
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700; margin-bottom: 0.3em;">短期记忆</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary); margin-bottom: 0.4em;">messages 数组 &bull; 当前任务</div>
+        <ul class="bullets">
+          <li style="font-size: var(--small-size);">完整对话历史</li>
+          <li style="font-size: var(--small-size);">工具调用记录</li>
+          <li style="font-size: var(--small-size);">任务结束即清除</li>
+        </ul>
+        <div style="font-size: var(--small-size); color: var(--accent-cyan); margin-top: 0.4em;">摘要压缩解决窗口限制</div>
+      </div>
+      <div class="neon-card">
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-magenta); font-weight: 700; margin-bottom: 0.3em;">长期记忆</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary); margin-bottom: 0.4em;">向量数据库 &bull; 永久存储</div>
+        <ul class="bullets">
+          <li style="font-size: var(--small-size);">Embedding 向量化</li>
+          <li style="font-size: var(--small-size);">语义相似度检索</li>
+          <li style="font-size: var(--small-size);">跨任务跨会话</li>
+        </ul>
+        <div style="font-size: var(--small-size); color: var(--accent-magenta); margin-top: 0.4em;">Chroma / Pinecone / Milvus</div>
+      </div>
+      <div class="neon-card">
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700; margin-bottom: 0.3em;">工作记忆</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary); margin-bottom: 0.4em;">Scratchpad &bull; 当前任务</div>
+        <ul class="bullets">
+          <li style="font-size: var(--small-size);">中间计算结果</li>
+          <li style="font-size: var(--small-size);">任务进度追踪</li>
+          <li style="font-size: var(--small-size);">待办清单管理</li>
+        </ul>
+        <div style="font-size: var(--small-size); color: var(--accent-cyan); margin-top: 0.4em;">做到哪了、还需做什么</div>
+      </div>
+    </div>
+    <div class="neon-quote reveal" style="margin-top: var(--content-gap);">
+      短期记忆理解上下文，长期记忆积累经验，工作记忆追踪进度
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 12: PLANNING
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">12</span>
+  <div class="slide-content">
+    <div class="section-num reveal">10 &mdash; PLANNING</div>
+    <h2 class="reveal">任务规划 <span class="neon-magenta">Planning</span></h2>
+    <div class="neon-line reveal"></div>
+    <p class="reveal" style="color: var(--text-secondary);">把复杂任务拆解为多步子任务，按顺序执行</p>
+    <div class="feature-grid cols-3 reveal" style="margin-top: var(--content-gap);">
+      <div class="neon-card" style="border-color: rgba(0, 255, 204, 0.25);">
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700; margin-bottom: 0.4em;">ReAct</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">Reasoning + Acting</div>
+        <div class="neon-line" style="width: 30px; margin: 0.4em 0;"></div>
+        <div style="font-size: var(--small-size);">思考 &rarr; 行动 &rarr; 观察 &rarr; 再思考 &rarr; 再行动</div>
+        <div style="font-size: var(--small-size); color: var(--accent-cyan); margin-top: 0.4em;">交替推理和行动</div>
+      </div>
+      <div class="neon-card" style="border-color: rgba(255, 0, 170, 0.25);">
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-magenta); font-weight: 700; margin-bottom: 0.4em;">Plan-and-Execute</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">先计划再执行</div>
+        <div class="neon-line" style="width: 30px; margin: 0.4em 0; background: var(--accent-magenta);"></div>
+        <div style="font-size: var(--small-size);">制定完整计划 &rarr; 逐步执行 &rarr; 必要时调整</div>
+        <div style="font-size: var(--small-size); color: var(--accent-magenta); margin-top: 0.4em;">全局规划，动态调整</div>
+      </div>
+      <div class="neon-card" style="border-color: rgba(0, 255, 204, 0.25);">
+        <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700; margin-bottom: 0.4em;">Reflection</div>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">自我反思</div>
+        <div class="neon-line" style="width: 30px; margin: 0.4em 0;"></div>
+        <div style="font-size: var(--small-size);">写代码 &rarr; 测试 &rarr; 失败 &rarr; 分析 &rarr; 修改 &rarr; 通过</div>
+        <div style="font-size: var(--small-size); color: var(--accent-cyan); margin-top: 0.4em;">迭代优化，非一次性</div>
+      </div>
+    </div>
+    <div class="neon-quote reveal" style="margin-top: var(--content-gap);">
+      规划让 Agent 从"一次性生成"进化为"迭代优化"
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 13: AGENT LOOP
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">13</span>
+  <div class="slide-content">
+    <div class="section-num reveal">11 &mdash; AGENT LOOP</div>
+    <h2 class="reveal">循环执行 <span class="neon-text">The Core</span></h2>
+    <div class="neon-line reveal"></div>
+    <div class="two-col reveal" style="margin-top: var(--content-gap);">
+      <div>
+        <div class="code-block">
+<span class="kw">def</span> <span class="fn">run_agent</span>(user_input):<br/>
+&nbsp;&nbsp;messages = [system_prompt, user_input]<br/>
+<br/>
+&nbsp;&nbsp;<span class="kw">while</span> <span class="num">True</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;response = <span class="fn">llm.chat</span>(messages, tools)<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> response.tool_calls:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> tc <span class="kw">in</span> response.tool_calls:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result = <span class="fn">execute_tool</span>(tc)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;messages.<span class="fn">append</span>(result)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">else</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> response.content
+        </div>
+      </div>
+      <div>
+        <h3 style="color: var(--accent-cyan); margin-bottom: clamp(0.3rem, 0.5vh, 0.5rem); font-size: var(--small-size);">执行过程</h3>
+        <div class="loop-diagram">
+          <div class="loop-step">
+            <div class="loop-icon" style="color: var(--accent-cyan);">&#x1F464;</div>
+            <span>用户提问</span>
+          </div>
+          <div class="loop-arrow-down">&darr;</div>
+          <div class="loop-step">
+            <div class="loop-icon" style="color: var(--accent-magenta);">&#x1F9E0;</div>
+            <span>LLM 思考 &rarr; 调用工具</span>
+          </div>
+          <div class="loop-arrow-down">&darr;</div>
+          <div class="loop-step">
+            <div class="loop-icon" style="color: var(--accent-cyan);">&#x26A1;</div>
+            <span>执行工具 &rarr; 返回结果</span>
+          </div>
+          <div class="loop-arrow-down">&darr;</div>
+          <div class="loop-step">
+            <div class="loop-icon" style="color: var(--accent-magenta);">&#x1F9E0;</div>
+            <span>LLM 看到结果 &rarr; 继续或完成</span>
+          </div>
+          <div class="loop-arrow-down" style="color: var(--accent-cyan);">&#x21BB; 循环直到完成</div>
+        </div>
+      </div>
+    </div>
+    <div class="neon-quote reveal" style="margin-top: var(--content-gap);">
+      Agent 的"自主性"= LLM 推理 + 循环执行 + 工具调用
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 14: MCP PROTOCOL
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">14</span>
+  <div class="slide-content">
+    <div class="section-num reveal">12 &mdash; MCP</div>
+    <h2 class="reveal">MCP 协议 <span class="neon-text">AI 的 "USB-C"</span></h2>
+    <div class="neon-line reveal"></div>
+    <div class="two-col reveal" style="margin-top: var(--content-gap);">
+      <div>
+        <h3 style="color: var(--accent-cyan); margin-bottom: clamp(0.3rem, 0.5vh, 0.5rem); font-size: var(--small-size);">解决 N&times;M 问题</h3>
+        <div class="compare-row" style="flex-direction: column; gap: clamp(0.3rem, 0.5vh, 0.5rem);">
+          <div class="compare-block old">
+            <div class="compare-label">没有 MCP</div>
+            <p style="font-size: var(--small-size);">3 个 AI &times; 5 个服务 = <span class="neon-magenta">15 套定制代码</span></p>
+          </div>
+          <div class="compare-block new">
+            <div class="compare-label">有了 MCP</div>
+            <p style="font-size: var(--small-size);">3 Client + 5 Server = <span class="neon-text">8 个实现</span></p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color: var(--accent-magenta); margin-bottom: clamp(0.3rem, 0.5vh, 0.5rem); font-size: var(--small-size);">核心价值</h3>
+        <table class="neon-table">
+          <tr><th>价值</th><th>说明</th></tr>
+          <tr><td style="color: var(--accent-cyan);">标准化</td><td>工具厂商只需实现一次</td></tr>
+          <tr><td style="color: var(--accent-cyan);">降成本</td><td>无需为每个工具写定制代码</td></tr>
+          <tr><td style="color: var(--accent-cyan);">生态加速</td><td>社区共建 MCP Server</td></tr>
+          <tr><td style="color: var(--accent-cyan);">可插拔</td><td>动态发现和加载工具</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="reveal" style="margin-top: var(--content-gap);">
+      <div class="pipeline">
+        <div class="pipeline-node" style="border-color: var(--accent-magenta); color: var(--accent-magenta);">LLM<br/><span style="font-size: var(--small-size); color: var(--text-secondary);">Function Calling</span></div>
+        <div class="pipeline-arrow">&rarr;</div>
+        <div class="pipeline-node">Agent 框架<br/><span style="font-size: var(--small-size); color: var(--text-secondary);">编排层</span></div>
+        <div class="pipeline-arrow">&rarr;</div>
+        <div class="pipeline-node" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">MCP Client<br/><span style="font-size: var(--small-size); color: var(--text-secondary);">标准接口</span></div>
+        <div class="pipeline-arrow">&rarr;</div>
+        <div class="pipeline-node" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">MCP Server<br/><span style="font-size: var(--small-size); color: var(--text-secondary);">工具实现</span></div>
+        <div class="pipeline-arrow">&rarr;</div>
+        <div class="pipeline-node" style="border-color: var(--accent-magenta); color: var(--accent-magenta);">外部系统<br/><span style="font-size: var(--small-size); color: var(--text-secondary);">真实世界</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 15: TASK COMPLETION
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">15</span>
+  <div class="slide-content">
+    <div class="section-num reveal">13 &mdash; COMPLETION</div>
+    <h2 class="reveal">任务如何完成？</h2>
+    <div class="neon-line reveal"></div>
+    <div class="reveal" style="margin: var(--content-gap) 0; text-align: center;">
+      <p style="color: var(--text-secondary); margin-bottom: var(--content-gap);">核心答案：不是代码判断的，是 <span class="neon-text">LLM 自己决定</span>的</p>
+      <div class="compare-row" style="max-width: min(85%, 700px); margin: 0 auto;">
+        <div class="compare-block new" style="text-align: center;">
+          <div class="compare-label">输出 A: 调用工具</div>
+          <p style="font-size: var(--small-size);">tool_calls 不为空</p>
+          <p style="font-size: var(--small-size); color: var(--accent-cyan);">&rarr; 继续循环</p>
+        </div>
+        <div class="compare-block old" style="text-align: center;">
+          <div class="compare-label">输出 B: 直接回复</div>
+          <p style="font-size: var(--small-size);">tool_calls 为空</p>
+          <p style="font-size: var(--small-size); color: var(--accent-magenta);">&rarr; 任务完成</p>
+        </div>
+      </div>
+    </div>
+    <div class="reveal">
+      <h3 style="color: var(--accent-magenta); margin-bottom: clamp(0.3rem, 0.5vh, 0.5rem); font-size: var(--small-size); text-align: center;">安全防护</h3>
+      <div class="feature-grid cols-3" style="max-width: min(85%, 700px); margin: 0 auto;">
+        <div class="neon-card" style="text-align: center; padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+          <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700;">最大步数</div>
+          <div style="font-size: var(--small-size); color: var(--text-secondary);">max_steps 防止无限循环</div>
+        </div>
+        <div class="neon-card" style="text-align: center; padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+          <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-magenta); font-weight: 700;">结果验证</div>
+          <div style="font-size: var(--small-size); color: var(--text-secondary);">validate 检查完整性</div>
+        </div>
+        <div class="neon-card" style="text-align: center; padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+          <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700;">强制继续</div>
+          <div style="font-size: var(--small-size); color: var(--text-secondary);">不完整则追加提示</div>
+        </div>
+      </div>
+    </div>
+    <div class="neon-quote reveal" style="margin-top: var(--content-gap);">
+      模型越强，判断越准确；模型越弱，越容易过早停止或无限循环
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 16: RESULT VALIDATION
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">16</span>
+  <div class="slide-content">
+    <div class="section-num reveal">14 &mdash; VALIDATION</div>
+    <h2 class="reveal">结果验证 <span class="neon-magenta">三种方式</span></h2>
+    <div class="neon-line reveal"></div>
+    <div class="feature-grid cols-3 reveal" style="margin-top: var(--content-gap);">
+      <div class="neon-card" style="border-color: rgba(0, 255, 204, 0.3);">
+        <div style="font-family: var(--font-display); font-size: clamp(1.2rem, 2vw, 1.8rem); font-weight: 900; color: var(--accent-cyan); text-shadow: var(--glow-cyan); margin-bottom: 0.3em;">01</div>
+        <h3 style="color: var(--accent-cyan); font-size: var(--small-size); margin-bottom: 0.3em;">程序化验证</h3>
+        <div style="font-size: var(--small-size); color: var(--text-secondary); margin-bottom: 0.5em;">最可靠 &bull; 最低成本</div>
+        <ul class="bullets">
+          <li style="font-size: var(--small-size);">数学计算 &rarr; 代码验证</li>
+          <li style="font-size: var(--small-size);">代码生成 &rarr; 运行测试</li>
+          <li style="font-size: var(--small-size);">API 调用 &rarr; HTTP 状态码</li>
+        </ul>
+      </div>
+      <div class="neon-card" style="border-color: rgba(255, 0, 170, 0.3);">
+        <div style="font-family: var(--font-display); font-size: clamp(1.2rem, 2vw, 1.8rem); font-weight: 900; color: var(--accent-magenta); text-shadow: var(--glow-magenta); margin-bottom: 0.3em;">02</div>
+        <h3 style="color: var(--accent-magenta); font-size: var(--small-size); margin-bottom: 0.3em;">LLM-as-Judge</h3>
+        <div style="font-size: var(--small-size); color: var(--text-secondary); margin-bottom: 0.5em;">中等可靠 &bull; 中等成本</div>
+        <ul class="bullets">
+          <li style="font-size: var(--small-size);">适用于开放式任务</li>
+          <li style="font-size: var(--small-size);">文案、翻译、总结</li>
+          <li style="font-size: var(--small-size);">LLM 自我评估质量</li>
+        </ul>
+      </div>
+      <div class="neon-card" style="border-color: rgba(0, 255, 204, 0.3);">
+        <div style="font-family: var(--font-display); font-size: clamp(1.2rem, 2vw, 1.8rem); font-weight: 900; color: var(--accent-cyan); text-shadow: var(--glow-cyan); margin-bottom: 0.3em;">03</div>
+        <h3 style="color: var(--accent-cyan); font-size: var(--small-size); margin-bottom: 0.3em;">交叉验证</h3>
+        <div style="font-size: var(--small-size); color: var(--text-secondary); margin-bottom: 0.5em;">最严谨 &bull; 最高成本</div>
+        <ul class="bullets">
+          <li style="font-size: var(--small-size);">医疗、法律、金融</li>
+          <li style="font-size: var(--small-size);">模型 A 执行</li>
+          <li style="font-size: var(--small-size);">模型 B 验证 + C 比较</li>
+        </ul>
+      </div>
+    </div>
+    <div class="neon-quote reveal" style="margin-top: var(--content-gap);">
+      越重要的任务越需要多重验证
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 17: CODE IMPLEMENTATION
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">17</span>
+  <div class="slide-content">
+    <div class="section-num reveal">15 &mdash; IMPLEMENTATION</div>
+    <h2 class="reveal">50 行代码实现 Agent</h2>
+    <div class="neon-line reveal"></div>
+    <div class="two-col reveal" style="margin-top: var(--content-gap);">
+      <div class="code-block" style="flex: 1.2;">
+<span class="kw">import</span> openai, json<br/>
+client = openai.<span class="fn">OpenAI</span>()<br/>
+<br/>
+tools = [{<span class="str">"type"</span>: <span class="str">"function"</span>,<br/>
+&nbsp;&nbsp;<span class="str">"function"</span>: {<span class="str">"name"</span>: <span class="str">"get_weather"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"description"</span>: <span class="str">"获取天气"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"parameters"</span>: {...}}}]]<br/>
+<br/>
+<span class="kw">def</span> <span class="fn">execute_tool</span>(name, args):<br/>
+&nbsp;&nbsp;<span class="kw">if</span> name == <span class="str">"get_weather"</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> json.<span class="fn">dumps</span>({<span class="str">"weather"</span>: <span class="str">"小雨"</span>})<br/>
+<br/>
+<span class="kw">def</span> <span class="fn">run_agent</span>(user_input, max_steps=<span class="num">10</span>):<br/>
+&nbsp;&nbsp;messages = [{<span class="str">"role"</span>: <span class="str">"system"</span>, ...},<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: user_input}]<br/>
+&nbsp;&nbsp;<span class="kw">for</span> step <span class="kw">in</span> <span class="fn">range</span>(max_steps):<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;resp = client.chat.completions.<span class="fn">create</span>(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;model=<span class="str">"gpt-4o"</span>, messages=messages, tools=tools)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;msg = resp.choices[<span class="num">0</span>].message<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> msg.tool_calls:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;messages.<span class="fn">append</span>(msg)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> tc <span class="kw">in</span> msg.tool_calls:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result = <span class="fn">execute_tool</span>(...)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;messages.<span class="fn">append</span>({<span class="str">"role"</span>: <span class="str">"tool"</span>, ...})<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">else</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> msg.content
+      </div>
+      <div style="flex: 0.8;">
+        <h3 style="color: var(--accent-cyan); margin-bottom: clamp(0.3rem, 0.5vh, 0.5rem); font-size: var(--small-size);">关键洞察</h3>
+        <div style="display: flex; flex-direction: column; gap: clamp(0.3rem, 0.6vh, 0.6rem);">
+          <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+            <div style="color: var(--accent-cyan); font-family: var(--font-display); font-size: var(--small-size); font-weight: 700;">LLM 不执行操作</div>
+            <div style="font-size: var(--small-size); color: var(--text-secondary);">只输出"我想调用 get_weather"</div>
+          </div>
+          <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+            <div style="color: var(--accent-magenta); font-family: var(--font-display); font-size: var(--small-size); font-weight: 700;">你的代码执行</div>
+            <div style="font-size: var(--small-size); color: var(--text-secondary);">execute_tool 是你写的函数</div>
+          </div>
+          <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+            <div style="color: var(--accent-cyan); font-family: var(--font-display); font-size: var(--small-size); font-weight: 700;">Agent = 胶水代码</div>
+            <div style="font-size: var(--small-size); color: var(--text-secondary);">连接 LLM 决策和真实工具</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 18: SELF-CORRECTION
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">18</span>
+  <div class="slide-content">
+    <div class="section-num reveal">16 &mdash; SELF-CORRECTION</div>
+    <h2 class="reveal">自我纠错能力</h2>
+    <div class="neon-line reveal"></div>
+    <div class="two-col reveal" style="margin-top: var(--content-gap);">
+      <div>
+        <h3 style="color: var(--accent-cyan); margin-bottom: clamp(0.3rem, 0.5vh, 0.5rem); font-size: var(--small-size);">实际案例</h3>
+        <div style="display: flex; flex-direction: column; gap: clamp(0.2rem, 0.4vh, 0.4rem);">
+          <div class="neon-card" style="padding: clamp(0.25rem, 0.5vw, 0.5rem); display: flex; align-items: center; gap: clamp(0.3rem, 0.6vw, 0.6rem);">
+            <span style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-magenta); font-weight: 700; white-space: nowrap;">R1</span>
+            <span style="font-size: var(--small-size);">run_tests() &rarr; <span class="neon-magenta">3 tests failed</span></span>
+          </div>
+          <div class="neon-card" style="padding: clamp(0.25rem, 0.5vw, 0.5rem); display: flex; align-items: center; gap: clamp(0.3rem, 0.6vw, 0.6rem);">
+            <span style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700; white-space: nowrap;">R2</span>
+            <span style="font-size: var(--small-size);">分析原因 &rarr; 缺少环境变量</span>
+          </div>
+          <div class="neon-card" style="padding: clamp(0.25rem, 0.5vw, 0.5rem); display: flex; align-items: center; gap: clamp(0.3rem, 0.6vw, 0.6rem);">
+            <span style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700; white-space: nowrap;">R3</span>
+            <span style="font-size: var(--small-size);">set_env("AUTH_KEY") &rarr; 成功</span>
+          </div>
+          <div class="neon-card" style="padding: clamp(0.25rem, 0.5vw, 0.5rem); display: flex; align-items: center; gap: clamp(0.3rem, 0.6vw, 0.6rem);">
+            <span style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700; white-space: nowrap;">R4</span>
+            <span style="font-size: var(--small-size);">run_tests() &rarr; <span class="neon-text">All passed &#x2713;</span></span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color: var(--accent-magenta); margin-bottom: clamp(0.3rem, 0.5vh, 0.5rem); font-size: var(--small-size);">三种反思模式</h3>
+        <div style="display: flex; flex-direction: column; gap: clamp(0.3rem, 0.5vh, 0.5rem);">
+          <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem); border-color: rgba(0, 255, 204, 0.25);">
+            <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700;">&#x2460; 结果验证</div>
+            <div style="font-size: var(--small-size); color: var(--text-secondary);">执行 &rarr; 检查 &rarr; 不符合则修正</div>
+          </div>
+          <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem); border-color: rgba(255, 0, 170, 0.25);">
+            <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-magenta); font-weight: 700;">&#x2461; 自我评估</div>
+            <div style="font-size: var(--small-size); color: var(--text-secondary);">生成 &rarr; 评估质量 &rarr; 低分重新生成</div>
+          </div>
+          <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem); border-color: rgba(0, 255, 204, 0.25);">
+            <div style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700;">&#x2462; 多路径探索</div>
+            <div style="font-size: var(--small-size); color: var(--text-secondary);">多种解法 &rarr; 比较 &rarr; 选择最优</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 19: AI CODING TOOLS
+     ============================================ -->
+<section class="slide">
+  <span class="slide-badge">19</span>
+  <div class="slide-content">
+    <div class="section-num reveal">17 &mdash; TOOLS</div>
+    <h2 class="reveal">AI 编程工具对比</h2>
+    <div class="neon-line reveal"></div>
+    <div class="reveal" style="margin-top: var(--content-gap); overflow-x: auto;">
+      <table class="neon-table">
+        <tr>
+          <th>工具</th>
+          <th>形态</th>
+          <th>核心优势</th>
+          <th>价格</th>
+        </tr>
+        <tr>
+          <td style="color: var(--accent-cyan); font-weight: 600;">GitHub Copilot</td>
+          <td>IDE 插件</td>
+          <td>生态最广，VS Code 深度集成</td>
+          <td>$10-19/月</td>
+        </tr>
+        <tr>
+          <td style="color: var(--accent-cyan); font-weight: 600;">Cursor</td>
+          <td>独立 IDE</td>
+          <td>Agent 模式，全项目上下文</td>
+          <td>$20/月</td>
+        </tr>
+        <tr>
+          <td style="color: var(--accent-magenta); font-weight: 600;">OpenCode</td>
+          <td>CLI 工具</td>
+          <td>终端原生，灵活可配置</td>
+          <td>自带 API Key</td>
+        </tr>
+        <tr>
+          <td style="color: var(--accent-magenta); font-weight: 600;">Claude Code</td>
+          <td>CLI 工具</td>
+          <td>Anthropic 官方，强推理</td>
+          <td>自带 API Key</td>
+        </tr>
+        <tr>
+          <td style="color: var(--accent-cyan); font-weight: 600;">Windsurf</td>
+          <td>独立 IDE</td>
+          <td>Cascade 流式工作流</td>
+          <td>$10-15/月</td>
+        </tr>
+      </table>
+    </div>
+    <div class="two-col reveal" style="margin-top: var(--content-gap);">
+      <div>
+        <h3 style="color: var(--accent-cyan); font-size: var(--small-size); margin-bottom: clamp(0.2rem, 0.3vh, 0.3rem);">高效做法</h3>
+        <ul class="bullets">
+          <li style="font-size: var(--small-size);">提供足够的代码上下文</li>
+          <li style="font-size: var(--small-size);">复杂功能拆成小步骤</li>
+          <li style="font-size: var(--small-size);">用规则文件统一规范</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color: var(--accent-magenta); font-size: var(--small-size); margin-bottom: clamp(0.2rem, 0.3vh, 0.3rem);">常见误区</h3>
+        <ul class="bullets">
+          <li style="font-size: var(--small-size); color: var(--text-secondary);">忽略上下文直接提问</li>
+          <li style="font-size: var(--small-size); color: var(--text-secondary);">一次性生成整个系统</li>
+          <li style="font-size: var(--small-size); color: var(--text-secondary);">AI 代码不看直接合入</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 20: SUMMARY + Q&A
+     ============================================ -->
+<section class="slide title-slide">
+  <span class="slide-badge">20</span>
+  <div class="slide-content" style="align-items: center; text-align: center;">
+    <div class="section-num reveal">SUMMARY</div>
+    <h2 class="reveal">核心要点回顾</h2>
+    <div class="neon-line reveal" style="margin: clamp(0.4rem, 1vh, 1rem) auto;"></div>
+    <div class="feature-grid cols-3 reveal" style="max-width: min(90%, 800px); margin: 0 auto; text-align: left;">
+      <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+        <span style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700;">&#x2460; LLM</span>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">下一个词预测器，只能输出文本</div>
+      </div>
+      <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+        <span style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-magenta); font-weight: 700;">&#x2461; Token</span>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">词表条目 ID，AI 的计量单位</div>
+      </div>
+      <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+        <span style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700;">&#x2462; LLM 限制</span>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">无 IO、无状态、无执行环境</div>
+      </div>
+      <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+        <span style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-magenta); font-weight: 700;">&#x2463; Agent</span>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">LLM + 感知 + 行动 + 记忆 + 规划 + 循环</div>
+      </div>
+      <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+        <span style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-cyan); font-weight: 700;">&#x2464; 核心机制</span>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">Agent Loop + Function Calling + 自我纠错</div>
+      </div>
+      <div class="neon-card" style="padding: clamp(0.3rem, 0.6vw, 0.6rem);">
+        <span style="font-family: var(--font-display); font-size: var(--small-size); color: var(--accent-magenta); font-weight: 700;">&#x2465; 用好工具</span>
+        <div style="font-size: var(--small-size); color: var(--text-secondary);">选对模型、提供上下文、始终 Review</div>
+      </div>
+    </div>
+    <div class="neon-quote reveal" style="margin-top: var(--content-gap); max-width: min(80%, 600px); text-align: center; border-left: none; border-top: 3px solid var(--accent-cyan); border-radius: 0; padding-top: clamp(0.5rem, 1vh, 1rem);">
+      <span style="font-family: var(--font-display); font-size: var(--body-size); font-weight: 600;">LLM 提供智能，Agent 提供执行力<br/>Agent 不是更聪明的 LLM，而是给天才装上了身体</span>
+    </div>
+    <p class="reveal" style="margin-top: var(--content-gap); color: var(--text-secondary); font-family: var(--font-display); font-size: var(--h3-size); letter-spacing: 0.1em;">Q &amp; A</p>
+  </div>
+</section>
+
+<script>
+/* ===========================================
+   PARTICLE BACKGROUND
+   =========================================== */
+(function() {
+  const canvas = document.getElementById('particles');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let w, h, particles = [];
+  const PARTICLE_COUNT = 50;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+
+  function init() {
+    resize();
+    particles = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 1.5 + 0.5,
+        dx: (Math.random() - 0.5) * 0.3,
+        dy: (Math.random() - 0.5) * 0.3,
+        color: Math.random() > 0.5 ? 'rgba(0,255,204,' : 'rgba(255,0,170,'
+      });
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.x += p.dx;
+      p.y += p.dy;
+      if (p.x < 0) p.x = w;
+      if (p.x > w) p.x = 0;
+      if (p.y < 0) p.y = h;
+      if (p.y > h) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color + '0.6)';
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  init();
+  draw();
+})();
+
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   =========================================== */
+class SlidePresentation {
+  constructor() {
+    this.slides = document.querySelectorAll('.slide');
+    this.currentSlide = 0;
+    this.isScrolling = false;
+    this.scrollTimeout = null;
+    this.setupIntersectionObserver();
+    this.setupKeyboardNav();
+    this.setupTouchNav();
+    this.setupWheelNav();
+    this.setupProgressBar();
+    this.setupNavDots();
+  }
+
+  setupIntersectionObserver() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          const idx = Array.from(this.slides).indexOf(entry.target);
+          if (idx !== -1) {
+            this.currentSlide = idx;
+            this.updateProgressBar();
+            this.updateNavDots();
+          }
+        }
+      });
+    }, { threshold: 0.5 });
+
+    this.slides.forEach(slide => observer.observe(slide));
+  }
+
+  setupKeyboardNav() {
+    document.addEventListener('keydown', (e) => {
+      switch(e.key) {
+        case 'ArrowDown':
+        case 'ArrowRight':
+        case ' ':
+        case 'PageDown':
+          e.preventDefault();
+          this.goToSlide(this.currentSlide + 1);
+          break;
+        case 'ArrowUp':
+        case 'ArrowLeft':
+        case 'PageUp':
+          e.preventDefault();
+          this.goToSlide(this.currentSlide - 1);
+          break;
+        case 'Home':
+          e.preventDefault();
+          this.goToSlide(0);
+          break;
+        case 'End':
+          e.preventDefault();
+          this.goToSlide(this.slides.length - 1);
+          break;
+      }
+    });
+  }
+
+  setupTouchNav() {
+    let startY = 0;
+    let startX = 0;
+    document.addEventListener('touchstart', (e) => {
+      startY = e.touches[0].clientY;
+      startX = e.touches[0].clientX;
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+      const dy = startY - e.changedTouches[0].clientY;
+      const dx = startX - e.changedTouches[0].clientX;
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 50) {
+        if (dy > 0) this.goToSlide(this.currentSlide + 1);
+        else this.goToSlide(this.currentSlide - 1);
+      }
+    }, { passive: true });
+  }
+
+  setupWheelNav() {
+    document.addEventListener('wheel', (e) => {
+      if (this.isScrolling) return;
+      this.isScrolling = true;
+      if (e.deltaY > 0) this.goToSlide(this.currentSlide + 1);
+      else if (e.deltaY < 0) this.goToSlide(this.currentSlide - 1);
+      clearTimeout(this.scrollTimeout);
+      this.scrollTimeout = setTimeout(() => { this.isScrolling = false; }, 800);
+    }, { passive: true });
+  }
+
+  goToSlide(index) {
+    if (index < 0 || index >= this.slides.length) return;
+    this.currentSlide = index;
+    this.slides[index].scrollIntoView({ behavior: 'smooth' });
+    this.updateProgressBar();
+    this.updateNavDots();
+  }
+
+  setupProgressBar() {
+    this.progressBar = document.getElementById('progressBar');
+    this.updateProgressBar();
+  }
+
+  updateProgressBar() {
+    if (!this.progressBar) return;
+    const pct = ((this.currentSlide + 1) / this.slides.length) * 100;
+    this.progressBar.style.width = pct + '%';
+  }
+
+  setupNavDots() {
+    this.navDotsContainer = document.getElementById('navDots');
+    if (!this.navDotsContainer) return;
+    this.navDotsContainer.innerHTML = '';
+    this.slides.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+      dot.addEventListener('click', () => this.goToSlide(i));
+      this.navDotsContainer.appendChild(dot);
+    });
+  }
+
+  updateNavDots() {
+    if (!this.navDotsContainer) return;
+    const dots = this.navDotsContainer.querySelectorAll('.nav-dot');
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === this.currentSlide);
+    });
+  }
+}
+
+/* ===========================================
+   FULLSCREEN CONTROLLER
+   =========================================== */
+class FullscreenController {
+  constructor() {
+    this.btn = document.getElementById('fullscreenBtn');
+    this.btn.addEventListener('click', () => this.toggle());
+    document.addEventListener('keydown', (e) => {
+      if ((e.key === 'f' || e.key === 'F') && !e.target.getAttribute('contenteditable')) {
+        this.toggle();
+      }
+    });
+    document.addEventListener('fullscreenchange', () => this.updateIcon());
+  }
+
+  toggle() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  updateIcon() {
+    this.btn.textContent = document.fullscreenElement ? '\u2715' : '\u26F6';
+  }
+}
+
+new SlidePresentation();
+new FullscreenController();
+</script>
+</body>
+</html>

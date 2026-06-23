@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect x="0" y="0" width="400" height="6" fill="url(#accent)"/>
+
+  <text x="120" y="120" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 48px; font-weight: bold; fill: #FFFFFF;">记忆系统 Memory</text>
+  <rect x="120" y="140" width="200" height="4" fill="url(#accent)"/>
+
+  <text x="120" y="195" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">记忆是 Agent 保持连贯性和个性化的关键，弥补 LLM 无状态的本质</text>
+
+  <!-- Type 1: Working Memory -->
+  <path d="M 120,240 Q 120,228 132,228 L 640,228 Q 652,228 652,240 L 652,680 Q 652,692 640,692 L 132,692 Q 120,692 120,680 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="180" cy="275" r="22" fill="#00F5D4" fill-opacity="0.15"/>
+  <text x="180" y="282" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; fill: #00F5D4;">W</text>
+  <text x="215" y="282" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; font-weight: bold; fill: #00F5D4;">工作记忆</text>
+  <text x="215" y="310" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Working Memory / Context Window</text>
+
+  <line x1="160" y1="330" x2="610" y2="330" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+
+  <text x="160" y="365" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FFFFFF;">当前对话上下文</text>
+  <text x="160" y="395" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">System Prompt + 历史消息</text>
+  <text x="160" y="425" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">当前工具调用结果</text>
+  <text x="160" y="455" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">中间推理步骤</text>
+
+  <line x1="160" y1="475" x2="610" y2="475" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+
+  <text x="160" y="510" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #00F5D4;">特点:</text>
+  <text x="160" y="540" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">受上下文窗口限制</text>
+  <text x="160" y="565" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">每次请求全量发送</text>
+  <text x="160" y="590" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Token 消耗的主要来源</text>
+
+  <text x="160" y="640" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #FF6B6B;">类比: 人的短期记忆/工作台</text>
+
+  <!-- Type 2: Long-term Memory -->
+  <path d="M 680,240 Q 680,228 692,228 L 1200,228 Q 1212,228 1212,240 L 1212,680 Q 1212,692 1200,692 L 692,692 Q 680,692 680,680 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="740" cy="275" r="22" fill="#7B61FF" fill-opacity="0.15"/>
+  <text x="740" y="282" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; fill: #7B61FF;">L</text>
+  <text x="775" y="282" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; font-weight: bold; fill: #7B61FF;">长期记忆</text>
+  <text x="775" y="310" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Long-term Memory / Vector DB</text>
+
+  <line x1="720" y1="330" x2="1170" y2="330" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+
+  <text x="720" y="365" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FFFFFF;">持久化存储的知识</text>
+  <text x="720" y="395" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">向量数据库 (Embedding)</text>
+  <text x="720" y="425" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">用户偏好和历史决策</text>
+  <text x="720" y="455" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">项目知识库 / RAG 数据</text>
+
+  <line x1="720" y1="475" x2="1170" y2="475" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+
+  <text x="720" y="510" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #7B61FF;">特点:</text>
+  <text x="720" y="540" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">跨会话持久保存</text>
+  <text x="720" y="565" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">语义相似度检索</text>
+  <text x="720" y="590" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">按需注入工作记忆</text>
+
+  <text x="720" y="640" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #FF6B6B;">类比: 人的长期记忆/图书馆</text>
+
+  <!-- Type 3: Episodic Memory -->
+  <path d="M 1240,240 Q 1240,228 1252,228 L 1788,228 Q 1800,228 1800,240 L 1800,680 Q 1800,692 1788,692 L 1252,692 Q 1240,692 1240,680 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#FF6B6B" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="1300" cy="275" r="22" fill="#FF6B6B" fill-opacity="0.15"/>
+  <text x="1300" y="282" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; fill: #FF6B6B;">E</text>
+  <text x="1335" y="282" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; font-weight: bold; fill: #FF6B6B;">情景记忆</text>
+  <text x="1335" y="310" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Episodic Memory / Experience</text>
+
+  <line x1="1280" y1="330" x2="1750" y2="330" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+
+  <text x="1280" y="365" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FFFFFF;">过去的经验记录</text>
+  <text x="1280" y="395" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">成功/失败的任务记录</text>
+  <text x="1280" y="425" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">错误修复的经验</text>
+  <text x="1280" y="455" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Few-shot 示例库</text>
+
+  <line x1="1280" y1="475" x2="1750" y2="475" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+
+  <text x="1280" y="510" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #FF6B6B;">特点:</text>
+  <text x="1280" y="540" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Agent 从经验中学习</text>
+  <text x="1280" y="565" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">避免重复犯错</text>
+  <text x="1280" y="590" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">提升任务成功率</text>
+
+  <text x="1280" y="640" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #FF6B6B;">类比: 人的经验/工作笔记</text>
+
+  <!-- Bottom: Memory management strategy -->
+  <path d="M 200,740 Q 200,728 212,728 L 1708,728 Q 1720,728 1720,740 L 1720,850 Q 1720,862 1708,862 L 212,862 Q 200,862 200,850 Z" fill="#FFFFFF" fill-opacity="0.03" stroke="#7B61FF" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="960" y="775" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #7B61FF;">记忆管理策略</text>
+  <text x="400" y="815" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">滑动窗口: 保留最近 N 轮对话</text>
+  <text x="960" y="815" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">摘要压缩: 长对话压缩为摘要</text>
+  <text x="1520" y="815" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">向量检索: 按需召回相关知识</text>
+
+  <text x="1870" y="1050" text-anchor="end" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">11/15</text>
+</svg>

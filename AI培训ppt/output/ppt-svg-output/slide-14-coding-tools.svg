@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect x="0" y="0" width="400" height="6" fill="url(#accent)"/>
+
+  <text x="120" y="120" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 48px; font-weight: bold; fill: #FFFFFF;">AI 编程工具对比</text>
+  <rect x="120" y="140" width="200" height="4" fill="url(#accent)"/>
+
+  <!-- Table header -->
+  <path d="M 120,200 Q 120,190 130,190 L 1790,190 Q 1800,190 1800,200 L 1800,250 Q 1800,260 1790,260 L 130,260 Q 120,260 120,250 Z" fill="#7B61FF" fill-opacity="0.15"/>
+  <text x="260" y="233" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FFFFFF;">工具</text>
+  <text x="520" y="233" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FFFFFF;">类型</text>
+  <text x="760" y="233" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FFFFFF;">核心特点</text>
+  <text x="1120" y="233" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FFFFFF;">Agent 能力</text>
+  <text x="1440" y="233" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FFFFFF;">MCP 支持</text>
+  <text x="1680" y="233" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FFFFFF;">适合场景</text>
+
+  <!-- Row 1: Cursor -->
+  <path d="M 120,270 Q 120,262 130,262 L 1790,262 Q 1800,262 1800,270 L 1800,340 Q 1800,348 1790,348 L 130,348 Q 120,348 120,340 Z" fill="#FFFFFF" fill-opacity="0.03"/>
+  <text x="260" y="312" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #00F5D4;">Cursor</text>
+  <text x="520" y="312" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">IDE (VS Code)</text>
+  <text x="760" y="300" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">Tab 补全 + Chat</text>
+  <text x="760" y="325" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">Composer Agent 模式</text>
+  <text x="1120" y="312" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">文件读写/终端/搜索</text>
+  <text x="1440" y="312" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #00F5D4;">原生支持</text>
+  <text x="1680" y="312" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">日常开发主力</text>
+
+  <!-- Row 2: Windsurf -->
+  <path d="M 120,358 Q 120,350 130,350 L 1790,350 Q 1800,350 1800,358 L 1800,428 Q 1800,436 1790,436 L 130,436 Q 120,436 120,428 Z" fill="#FFFFFF" fill-opacity="0.02"/>
+  <text x="260" y="400" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #00F5D4;">Windsurf</text>
+  <text x="520" y="400" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">IDE (VS Code)</text>
+  <text x="760" y="388" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">Cascade 流式 Agent</text>
+  <text x="760" y="413" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">深度上下文感知</text>
+  <text x="1120" y="400" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">全仓库索引理解</text>
+  <text x="1440" y="400" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #00F5D4;">支持</text>
+  <text x="1680" y="400" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">大型项目重构</text>
+
+  <!-- Row 3: GitHub Copilot -->
+  <path d="M 120,446 Q 120,438 130,438 L 1790,438 Q 1800,438 1800,446 L 1800,516 Q 1800,524 1790,524 L 130,524 Q 120,524 120,516 Z" fill="#FFFFFF" fill-opacity="0.03"/>
+  <text x="260" y="488" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #00F5D4;">Copilot</text>
+  <text x="520" y="488" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">插件 (多 IDE)</text>
+  <text x="760" y="476" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">代码补全 + Chat</text>
+  <text x="760" y="501" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">Workspace 模式</text>
+  <text x="1120" y="488" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">Agent 模式 (新)</text>
+  <text x="1440" y="488" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">有限</text>
+  <text x="1680" y="488" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">企业级开发</text>
+
+  <!-- Row 4: Claude Code -->
+  <path d="M 120,534 Q 120,526 130,526 L 1790,526 Q 1800,526 1800,534 L 1800,604 Q 1800,612 1790,612 L 130,612 Q 120,612 120,604 Z" fill="#FFFFFF" fill-opacity="0.02"/>
+  <text x="260" y="576" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #7B61FF;">Claude Code</text>
+  <text x="520" y="576" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">CLI 终端</text>
+  <text x="760" y="564" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">纯终端 Agent</text>
+  <text x="760" y="589" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">自主编程执行</text>
+  <text x="1120" y="576" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">完整 Agent Loop</text>
+  <text x="1440" y="576" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #00F5D4;">原生支持</text>
+  <text x="1680" y="576" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">自动化脚本</text>
+
+  <!-- Row 5: OpenCode -->
+  <path d="M 120,622 Q 120,614 130,614 L 1790,614 Q 1800,614 1800,622 L 1800,692 Q 1800,700 1790,700 L 130,700 Q 120,700 120,692 Z" fill="#FFFFFF" fill-opacity="0.03"/>
+  <text x="260" y="664" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #7B61FF;">OpenCode</text>
+  <text x="520" y="664" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">CLI 终端</text>
+  <text x="760" y="652" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">开源终端 Agent</text>
+  <text x="760" y="677" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">多模型支持</text>
+  <text x="1120" y="664" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">完整 Agent Loop</text>
+  <text x="1440" y="664" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #00F5D4;">原生支持</text>
+  <text x="1680" y="664" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">开源定制</text>
+
+  <!-- Row 6: Bolt/v0 -->
+  <path d="M 120,710 Q 120,702 130,702 L 1790,702 Q 1800,702 1800,710 L 1800,780 Q 1800,788 1790,788 L 130,788 Q 120,788 120,780 Z" fill="#FFFFFF" fill-opacity="0.02"/>
+  <text x="260" y="752" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FF6B6B;">Bolt / v0</text>
+  <text x="520" y="752" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Web 平台</text>
+  <text x="760" y="740" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">全栈应用生成</text>
+  <text x="760" y="765" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">实时预览部署</text>
+  <text x="1120" y="752" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">沙箱执行环境</text>
+  <text x="1440" y="752" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">不支持</text>
+  <text x="1680" y="752" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">快速原型</text>
+
+  <!-- Bottom summary -->
+  <path d="M 200,830 Q 200,818 212,818 L 1708,818 Q 1720,818 1720,830 L 1720,920 Q 1720,932 1708,932 L 212,932 Q 200,932 200,920 Z" fill="#FFFFFF" fill-opacity="0.03" stroke="#00F5D4" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="960" y="860" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #00F5D4;">选择建议</text>
+  <text x="500" y="900" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">日常开发 → Cursor / Windsurf</text>
+  <text x="960" y="900" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">自动化/CI → Claude Code / OpenCode</text>
+  <text x="1440" y="900" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">快速原型 → Bolt / v0</text>
+
+  <text x="1870" y="1050" text-anchor="end" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">14/15</text>
+</svg>

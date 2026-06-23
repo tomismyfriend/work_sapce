@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect x="0" y="0" width="400" height="6" fill="url(#accent)"/>
+
+  <!-- Title -->
+  <text x="120" y="120" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 48px; font-weight: bold; fill: #FFFFFF;">议程总览</text>
+  <rect x="120" y="140" width="200" height="4" fill="url(#accent)"/>
+
+  <!-- Section 1 Card -->
+  <path d="M 120,220 Q 120,208 132,208 L 568,208 Q 580,208 580,220 L 580,520 Q 580,532 568,532 L 132,532 Q 120,532 120,520 Z" fill="#FFFFFF" fill-opacity="0.05" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="170" cy="260" r="20" fill="#00F5D4" fill-opacity="0.2"/>
+  <text x="170" y="268" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #00F5D4;">1</text>
+  <text x="210" y="268" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 28px; font-weight: bold; fill: #FFFFFF;">总：认知篇</text>
+  <text x="160" y="320" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">为什么关注 AI Agent？</text>
+  <text x="160" y="355" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">什么是 AI Agent？</text>
+  <text x="160" y="390" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">Agent 系统架构</text>
+  <text x="160" y="425" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">LLM 本质与限制</text>
+  <text x="160" y="460" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">Token 与计费</text>
+
+  <!-- Section 2 Card -->
+  <path d="M 660,220 Q 660,208 672,208 L 1108,208 Q 1120,208 1120,220 L 1120,520 Q 1120,532 1108,532 L 672,532 Q 660,532 660,520 Z" fill="#FFFFFF" fill-opacity="0.05" stroke="#7B61FF" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="710" cy="260" r="20" fill="#7B61FF" fill-opacity="0.2"/>
+  <text x="710" y="268" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #7B61FF;">2</text>
+  <text x="750" y="268" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 28px; font-weight: bold; fill: #FFFFFF;">分：能力篇</text>
+  <text x="700" y="320" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">感知能力 (Perception)</text>
+  <text x="700" y="355" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">行动能力 (Action)</text>
+  <text x="700" y="390" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">记忆系统 (Memory)</text>
+  <text x="700" y="425" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">Agent Loop 核心逻辑</text>
+  <text x="700" y="460" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">MCP 协议详解</text>
+
+  <!-- Section 3 Card -->
+  <path d="M 1200,220 Q 1200,208 1212,208 L 1648,208 Q 1660,208 1660,220 L 1660,520 Q 1660,532 1648,532 L 1212,532 Q 1200,532 1200,520 Z" fill="#FFFFFF" fill-opacity="0.05" stroke="#FF6B6B" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="1250" cy="260" r="20" fill="#FF6B6B" fill-opacity="0.2"/>
+  <text x="1250" y="268" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #FF6B6B;">3</text>
+  <text x="1290" y="268" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 28px; font-weight: bold; fill: #FFFFFF;">实战：工具篇</text>
+  <text x="1240" y="320" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">AI 编程工具全景</text>
+  <text x="1240" y="355" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">Cursor / Windsurf 实战</text>
+  <text x="1240" y="390" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">Prompt 工程技巧</text>
+  <text x="1240" y="425" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">最佳实践与避坑</text>
+  <text x="1240" y="460" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">总结与 Q&amp;A</text>
+
+  <!-- Bottom flow arrows -->
+  <text x="350" y="600" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #00F5D4; fill-opacity: 0.6;">认知建立</text>
+  <text x="590" y="600" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; fill: #7B61FF; fill-opacity: 0.5;">→</text>
+  <text x="890" y="600" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #7B61FF; fill-opacity: 0.6;">深入原理</text>
+  <text x="1130" y="600" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; fill: #FF6B6B; fill-opacity: 0.5;">→</text>
+  <text x="1430" y="600" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FF6B6B; fill-opacity: 0.6;">实战落地</text>
+
+  <text x="1870" y="1050" text-anchor="end" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">02/15</text>
+</svg>

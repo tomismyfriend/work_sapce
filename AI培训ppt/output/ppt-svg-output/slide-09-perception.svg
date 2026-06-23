@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect x="0" y="0" width="400" height="6" fill="url(#accent)"/>
+
+  <text x="120" y="120" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 48px; font-weight: bold; fill: #FFFFFF;">感知能力 Perception</text>
+  <rect x="120" y="140" width="200" height="4" fill="url(#accent)"/>
+
+  <!-- Intro -->
+  <text x="120" y="195" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">Agent 通过多种感知方式获取环境信息，转化为 LLM 可处理的上下文</text>
+
+  <!-- 5 perception methods -->
+  <!-- 1: Text Input -->
+  <path d="M 120,240 Q 120,228 132,228 L 640,228 Q 652,228 652,240 L 652,500 Q 652,512 640,512 L 132,512 Q 120,512 120,500 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="180" cy="275" r="20" fill="#00F5D4" fill-opacity="0.15"/>
+  <text x="180" y="282" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #00F5D4;">T</text>
+  <text x="215" y="282" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #FFFFFF;">文本输入</text>
+  <text x="160" y="320" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">用户自然语言指令</text>
+  <text x="160" y="350" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">结构化 Prompt 模板</text>
+  <text x="160" y="380" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">系统指令 + 用户消息</text>
+  <text x="160" y="420" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #00F5D4;">最基础的感知方式</text>
+  <text x="160" y="450" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #00F5D4;">所有 Agent 必备</text>
+
+  <!-- 2: File/Code Reading -->
+  <path d="M 680,240 Q 680,228 692,228 L 1200,228 Q 1212,228 1212,240 L 1212,500 Q 1212,512 1200,512 L 692,512 Q 680,512 680,500 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="740" cy="275" r="20" fill="#7B61FF" fill-opacity="0.15"/>
+  <text x="740" y="282" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #7B61FF;">F</text>
+  <text x="775" y="282" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #FFFFFF;">文件/代码读取</text>
+  <text x="720" y="320" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">读取本地文件内容</text>
+  <text x="720" y="350" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">解析代码仓库结构</text>
+  <text x="720" y="380" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">PDF / CSV / JSON 解析</text>
+  <text x="720" y="420" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #7B61FF;">编程 Agent 核心能力</text>
+  <text x="720" y="450" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #7B61FF;">Cursor / Windsurf 依赖</text>
+
+  <!-- 3: Web/API -->
+  <path d="M 1240,240 Q 1240,228 1252,228 L 1788,228 Q 1800,228 1800,240 L 1800,500 Q 1800,512 1788,512 L 1252,512 Q 1240,512 1240,500 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="1300" cy="275" r="20" fill="#00F5D4" fill-opacity="0.15"/>
+  <text x="1300" y="282" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #00F5D4;">W</text>
+  <text x="1335" y="282" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #FFFFFF;">网络/API 感知</text>
+  <text x="1280" y="320" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">HTTP 请求获取数据</text>
+  <text x="1280" y="350" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">搜索引擎查询</text>
+  <text x="1280" y="380" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">第三方 API 调用</text>
+  <text x="1280" y="420" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #00F5D4;">突破知识截止限制</text>
+  <text x="1280" y="450" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #00F5D4;">获取实时信息</text>
+
+  <!-- 4: Vision -->
+  <path d="M 120,550 Q 120,538 132,538 L 900,538 Q 912,538 912,550 L 912,810 Q 912,822 900,822 L 132,822 Q 120,822 120,810 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="180" cy="585" r="20" fill="#7B61FF" fill-opacity="0.15"/>
+  <text x="180" y="592" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #7B61FF;">V</text>
+  <text x="215" y="592" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #FFFFFF;">视觉感知</text>
+  <text x="160" y="630" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">图像理解 (GPT-4V / Claude)</text>
+  <text x="160" y="660" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">截图分析 / UI 识别</text>
+  <text x="160" y="690" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">图表数据提取</text>
+  <text x="160" y="730" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #7B61FF;">多模态 Agent 的关键</text>
+  <text x="160" y="760" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #7B61FF;">Computer Use 场景</text>
+
+  <!-- 5: Tool Output -->
+  <path d="M 960,550 Q 960,538 972,538 L 1788,538 Q 1800,538 1800,550 L 1800,810 Q 1800,822 1788,822 L 972,822 Q 960,822 960,810 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#FF6B6B" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="1020" cy="585" r="20" fill="#FF6B6B" fill-opacity="0.15"/>
+  <text x="1020" y="592" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #FF6B6B;">R</text>
+  <text x="1055" y="592" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #FFFFFF;">工具输出反馈</text>
+  <text x="1000" y="630" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">命令执行结果</text>
+  <text x="1000" y="660" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">函数返回值 / 错误信息</text>
+  <text x="1000" y="690" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">数据库查询结果</text>
+  <text x="1000" y="730" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #FF6B6B;">Agent Loop 的核心反馈</text>
+  <text x="1000" y="760" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #FF6B6B;">驱动下一轮决策</text>
+
+  <!-- Flow -->
+  <text x="960" y="890" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #00F5D4;">感知 → 转化为 Token → 进入 LLM 上下文窗口 → 驱动推理和决策</text>
+
+  <text x="1870" y="1050" text-anchor="end" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">09/15</text>
+</svg>

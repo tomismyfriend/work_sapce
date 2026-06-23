@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect x="0" y="0" width="400" height="6" fill="url(#accent)"/>
+
+  <text x="120" y="120" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 48px; font-weight: bold; fill: #FFFFFF;">行动能力 Action</text>
+  <rect x="120" y="140" width="200" height="4" fill="url(#accent)"/>
+
+  <!-- Function Calling explanation -->
+  <text x="120" y="210" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; font-weight: bold; fill: #00F5D4;">Function Calling 机制</text>
+  <text x="120" y="250" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 17px; fill: #B4B4B4;">LLM 不直接执行操作，而是输出结构化的函数调用指令，由运行时环境执行后返回结果</text>
+
+  <!-- Flow diagram -->
+  <!-- Step 1: User -->
+  <path d="M 120,310 Q 120,298 132,298 L 380,298 Q 392,298 392,310 L 392,420 Q 392,432 380,432 L 132,432 Q 120,432 120,420 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="256" y="345" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #00F5D4;">1. 用户请求</text>
+  <text x="256" y="380" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">"帮我查一下</text>
+  <text x="256" y="405" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">今天的天气"</text>
+
+  <!-- Arrow -->
+  <text x="420" y="370" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; fill: #FFFFFF; fill-opacity: 0.4;">→</text>
+
+  <!-- Step 2: LLM -->
+  <path d="M 460,310 Q 460,298 472,298 L 820,298 Q 832,298 832,310 L 832,420 Q 832,432 820,432 L 472,432 Q 460,432 460,420 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="646" y="345" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #7B61FF;">2. LLM 决策</text>
+  <text x="646" y="375" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">输出结构化调用:</text>
+  <text x="646" y="400" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 12px; fill: #00F5D4;">get_weather(city="北京")</text>
+
+  <!-- Arrow -->
+  <text x="860" y="370" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; fill: #FFFFFF; fill-opacity: 0.4;">→</text>
+
+  <!-- Step 3: Execute -->
+  <path d="M 900,310 Q 900,298 912,298 L 1250,298 Q 1262,298 1262,310 L 1262,420 Q 1262,432 1250,432 L 912,432 Q 900,432 900,420 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#FF6B6B" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="1081" y="345" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #FF6B6B;">3. 执行工具</text>
+  <text x="1081" y="375" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">运行时调用 API</text>
+  <text x="1081" y="400" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 12px; fill: #FF6B6B;">返回: "晴, 25°C"</text>
+
+  <!-- Arrow -->
+  <text x="1290" y="370" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; fill: #FFFFFF; fill-opacity: 0.4;">→</text>
+
+  <!-- Step 4: Response -->
+  <path d="M 1330,310 Q 1330,298 1342,298 L 1788,298 Q 1800,298 1800,310 L 1800,420 Q 1800,432 1788,432 L 1342,432 Q 1330,432 1330,420 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="1565" y="345" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #00F5D4;">4. 生成回答</text>
+  <text x="1565" y="375" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">LLM 整合结果</text>
+  <text x="1565" y="400" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 12px; fill: #00F5D4;">"北京今天晴,25°C"</text>
+
+  <!-- Common action types -->
+  <text x="960" y="510" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; font-weight: bold; fill: #FFFFFF;">常见行动类型</text>
+
+  <!-- Action type cards -->
+  <path d="M 120,550 Q 120,538 132,538 L 440,538 Q 452,538 452,550 L 452,720 Q 452,732 440,732 L 132,732 Q 120,732 120,720 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="286" y="580" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #00F5D4;">代码执行</text>
+  <text x="286" y="615" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">运行 Python/Shell</text>
+  <text x="286" y="645" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">编译/测试代码</text>
+  <text x="286" y="675" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Git 操作</text>
+  <text x="286" y="710" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 12px; fill: #00F5D4;">编程 Agent 核心</text>
+
+  <path d="M 480,550 Q 480,538 492,538 L 800,538 Q 812,538 812,550 L 812,720 Q 812,732 800,732 L 492,732 Q 480,732 480,720 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="646" y="580" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #7B61FF;">文件操作</text>
+  <text x="646" y="615" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">创建/读取/修改文件</text>
+  <text x="646" y="645" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">目录遍历</text>
+  <text x="646" y="675" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">搜索替换内容</text>
+  <text x="646" y="710" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 12px; fill: #7B61FF;">Cursor 核心能力</text>
+
+  <path d="M 840,550 Q 840,538 852,538 L 1160,538 Q 1172,538 1172,550 L 1172,720 Q 1172,732 1160,732 L 852,732 Q 840,732 840,720 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="1006" y="580" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #00F5D4;">网络请求</text>
+  <text x="1006" y="615" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">HTTP API 调用</text>
+  <text x="1006" y="645" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">数据库查询</text>
+  <text x="1006" y="675" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">搜索引擎检索</text>
+  <text x="1006" y="710" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 12px; fill: #00F5D4;">信息获取能力</text>
+
+  <path d="M 1200,550 Q 1200,538 1212,538 L 1520,538 Q 1532,538 1532,550 L 1532,720 Q 1532,732 1520,732 L 1212,732 Q 1200,732 1200,720 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="1366" y="580" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #7B61FF;">系统操作</text>
+  <text x="1366" y="615" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">终端命令执行</text>
+  <text x="1366" y="645" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">进程管理</text>
+  <text x="1366" y="675" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">环境配置</text>
+  <text x="1366" y="710" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 12px; fill: #7B61FF;">DevOps Agent</text>
+
+  <path d="M 1560,550 Q 1560,538 1572,538 L 1788,538 Q 1800,538 1800,550 L 1800,720 Q 1800,732 1788,732 L 1572,732 Q 1560,732 1560,720 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#FF6B6B" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="1680" y="580" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #FF6B6B;">MCP 工具</text>
+  <text x="1680" y="615" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">标准化工具协议</text>
+  <text x="1680" y="645" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">即插即用</text>
+  <text x="1680" y="675" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">生态共享</text>
+  <text x="1680" y="710" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 12px; fill: #FF6B6B;">下一章详解</text>
+
+  <!-- Key insight -->
+  <path d="M 200,780 Q 200,768 212,768 L 1708,768 Q 1720,768 1720,780 L 1720,870 Q 1720,882 1708,882 L 212,882 Q 200,882 200,870 Z" fill="#FFFFFF" fill-opacity="0.03" stroke="#00F5D4" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="960" y="810" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #00F5D4;">Function Calling 是 Agent 从"能说"到"能做"的关键桥梁</text>
+  <text x="960" y="850" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">LLM 输出 JSON 格式的 tool_call → 运行时解析并执行 → 结果回传给 LLM → 继续推理</text>
+
+  <text x="1870" y="1050" text-anchor="end" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">10/15</text>
+</svg>

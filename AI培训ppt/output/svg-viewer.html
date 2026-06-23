@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 开发与智能编程工具实战 - SVG Slides Viewer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0a;
+    color: #fff;
+    font-family: "Microsoft YaHei", "SimHei", sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .viewer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .slide-container {
+    position: relative;
+    width: 90vw;
+    max-width: 1920px;
+    aspect-ratio: 16 / 9;
+    max-height: 85vh;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .slide-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .controls {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(30, 30, 30, 0.9);
+    backdrop-filter: blur(10px);
+    padding: 10px 24px;
+    border-radius: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 100;
+  }
+
+  .controls button {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+  }
+
+  .controls button:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .controls button:active {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  .page-info {
+    font-size: 14px;
+    color: #aaa;
+    min-width: 60px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #00F5D4, #7B61FF);
+    transition: width 0.3s ease;
+    z-index: 100;
+  }
+
+  .nav-hint {
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    font-size: 12px;
+    color: #555;
+    z-index: 100;
+  }
+
+  .fullscreen-btn {
+    position: fixed;
+    top: 16px;
+    left: 20px;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #aaa;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.2s;
+  }
+
+  .fullscreen-btn:hover {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .click-zone {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 30%;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .click-zone.left { left: 0; }
+  .click-zone.right { right: 0; }
+
+  .click-zone:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  /* Thumbnail strip */
+  .thumb-strip {
+    position: fixed;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(20, 20, 20, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    max-width: 90vw;
+    overflow-x: auto;
+    z-index: 100;
+  }
+
+  .thumb-strip.visible {
+    display: flex;
+  }
+
+  .thumb-strip img {
+    width: 120px;
+    height: 67.5px;
+    object-fit: contain;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    opacity: 0.6;
+  }
+
+  .thumb-strip img:hover {
+    opacity: 1;
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .thumb-strip img.active {
+    opacity: 1;
+    border-color: #00F5D4;
+  }
+
+  .thumb-toggle {
+    font-size: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="nav-hint">← → 方向键翻页 | 空格下一页 | Home/End 首尾页</div>
+<button class="fullscreen-btn" onclick="toggleFullscreen()">全屏 (F)</button>
+
+<div class="viewer">
+  <div class="click-zone left" onclick="prevSlide()"></div>
+  <div class="slide-container">
+    <img id="slideImg" src="" alt="Slide">
+  </div>
+  <div class="click-zone right" onclick="nextSlide()"></div>
+</div>
+
+<div class="controls">
+  <button onclick="prevSlide()" title="上一页 (←)">◀</button>
+  <span class="page-info" id="pageInfo">1 / 15</span>
+  <button onclick="nextSlide()" title="下一页 (→)">▶</button>
+  <button class="thumb-toggle" onclick="toggleThumbs()" title="缩略图">☷</button>
+</div>
+
+<div class="thumb-strip" id="thumbStrip"></div>
+
+<script>
+  const slides = [
+    'ppt-svg-output/slide-01-cover.svg',
+    'ppt-svg-output/slide-02-agenda.svg',
+    'ppt-svg-output/slide-03-why-agent.svg',
+    'ppt-svg-output/slide-04-what-is-agent.svg',
+    'ppt-svg-output/slide-05-architecture.svg',
+    'ppt-svg-output/slide-06-llm.svg',
+    'ppt-svg-output/slide-07-token.svg',
+    'ppt-svg-output/slide-08-llm-limits.svg',
+    'ppt-svg-output/slide-09-perception.svg',
+    'ppt-svg-output/slide-10-action.svg',
+    'ppt-svg-output/slide-11-memory.svg',
+    'ppt-svg-output/slide-12-agent-loop.svg',
+    'ppt-svg-output/slide-13-mcp.svg',
+    'ppt-svg-output/slide-14-coding-tools.svg',
+    'ppt-svg-output/slide-15-summary.svg'
+  ];
+
+  let current = 0;
+  const img = document.getElementById('slideImg');
+  const pageInfo = document.getElementById('pageInfo');
+  const progressBar = document.getElementById('progressBar');
+  const thumbStrip = document.getElementById('thumbStrip');
+
+  function showSlide(n) {
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    img.src = slides[current];
+    pageInfo.textContent = `${current + 1} / ${slides.length}`;
+    progressBar.style.width = `${((current + 1) / slides.length) * 100}%`;
+
+    document.querySelectorAll('.thumb-strip img').forEach((t, i) => {
+      t.classList.toggle('active', i === current);
+    });
+  }
+
+  function nextSlide() { showSlide(current + 1); }
+  function prevSlide() { showSlide(current - 1); }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  function toggleThumbs() {
+    thumbStrip.classList.toggle('visible');
+  }
+
+  // Build thumbnails
+  slides.forEach((src, i) => {
+    const thumb = document.createElement('img');
+    thumb.src = src;
+    thumb.onclick = () => { showSlide(i); thumbStrip.classList.remove('visible'); };
+    thumbStrip.appendChild(thumb);
+  });
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+      case ' ':
+      case 'PageDown':
+        e.preventDefault();
+        nextSlide();
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+      case 'PageUp':
+        e.preventDefault();
+        prevSlide();
+        break;
+      case 'Home':
+        e.preventDefault();
+        showSlide(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        showSlide(slides.length - 1);
+        break;
+      case 'f':
+      case 'F':
+        toggleFullscreen();
+        break;
+      case 'Escape':
+        thumbStrip.classList.remove('visible');
+        break;
+      case 't':
+      case 'T':
+        toggleThumbs();
+        break;
+    }
+  });
+
+  // Touch/swipe support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(diff) > 50) {
+      diff > 0 ? prevSlide() : nextSlide();
+    }
+  });
+
+  // Mouse wheel
+  let wheelTimeout = false;
+  document.addEventListener('wheel', (e) => {
+    if (wheelTimeout) return;
+    wheelTimeout = true;
+    setTimeout(() => { wheelTimeout = false; }, 400);
+    e.deltaY > 0 ? nextSlide() : prevSlide();
+  });
+
+  // Init
+  showSlide(0);
+</script>
+
+</body>
+</html>

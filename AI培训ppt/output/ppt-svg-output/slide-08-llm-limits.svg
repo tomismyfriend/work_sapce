@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect x="0" y="0" width="400" height="6" fill="url(#accent)"/>
+
+  <text x="120" y="120" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 48px; font-weight: bold; fill: #FFFFFF;">LLM 的五大限制</text>
+  <rect x="120" y="140" width="200" height="4" fill="url(#accent)"/>
+
+  <!-- Limitation 1 -->
+  <path d="M 120,200 Q 120,188 132,188 L 680,188 Q 692,188 692,200 L 692,420 Q 692,432 680,432 L 132,432 Q 120,432 120,420 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#FF6B6B" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="170" cy="230" r="18" fill="#FF6B6B" fill-opacity="0.2"/>
+  <text x="170" y="237" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #FF6B6B;">1</text>
+  <text x="200" y="237" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #FF6B6B;">幻觉问题</text>
+  <text x="160" y="275" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">会自信地生成错误信息</text>
+  <text x="160" y="305" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">编造不存在的 API、论文</text>
+  <text x="160" y="345" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #00F5D4;">→ Agent 解法: RAG + 工具验证</text>
+  <text x="160" y="380" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #00F5D4;">→ 始终验证关键输出</text>
+
+  <!-- Limitation 2 -->
+  <path d="M 720,200 Q 720,188 732,188 L 1280,188 Q 1292,188 1292,200 L 1292,420 Q 1292,432 1280,432 L 732,432 Q 720,432 720,420 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#FF6B6B" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="770" cy="230" r="18" fill="#FF6B6B" fill-opacity="0.2"/>
+  <text x="770" y="237" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #FF6B6B;">2</text>
+  <text x="800" y="237" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #FF6B6B;">知识截止</text>
+  <text x="760" y="275" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">训练数据有时间截止点</text>
+  <text x="760" y="305" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">无法获取实时信息</text>
+  <text x="760" y="345" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #00F5D4;">→ Agent 解法: 联网搜索工具</text>
+  <text x="760" y="380" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #00F5D4;">→ 实时 API 数据接入</text>
+
+  <!-- Limitation 3 -->
+  <path d="M 1320,200 Q 1320,188 1332,188 L 1788,188 Q 1800,188 1800,200 L 1800,420 Q 1800,432 1788,432 L 1332,432 Q 1320,432 1320,420 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#FF6B6B" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="1370" cy="230" r="18" fill="#FF6B6B" fill-opacity="0.2"/>
+  <text x="1370" y="237" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #FF6B6B;">3</text>
+  <text x="1400" y="237" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #FF6B6B;">上下文窗口</text>
+  <text x="1360" y="275" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">有限 Token 窗口限制</text>
+  <text x="1360" y="305" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">长文本会丢失信息</text>
+  <text x="1360" y="345" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #00F5D4;">→ Agent 解法: 记忆管理</text>
+  <text x="1360" y="380" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #00F5D4;">→ 摘要压缩 + 向量检索</text>
+
+  <!-- Limitation 4 -->
+  <path d="M 120,470 Q 120,458 132,458 L 900,458 Q 912,458 912,470 L 912,700 Q 912,712 900,712 L 132,712 Q 120,712 120,700 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#FF6B6B" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="170" cy="500" r="18" fill="#FF6B6B" fill-opacity="0.2"/>
+  <text x="170" y="507" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #FF6B6B;">4</text>
+  <text x="200" y="507" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #FF6B6B;">无法执行操作</text>
+  <text x="160" y="545" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">LLM 只能生成文本，不能:</text>
+  <text x="160" y="575" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">✗ 读写文件 / 执行代码</text>
+  <text x="160" y="605" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">✗ 访问网络 / 操作数据库</text>
+  <text x="160" y="645" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #00F5D4;">→ Agent 解法: Function Calling</text>
+  <text x="160" y="680" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #00F5D4;">→ MCP 协议标准化工具调用</text>
+
+  <!-- Limitation 5 -->
+  <path d="M 960,470 Q 960,458 972,458 L 1788,458 Q 1800,458 1800,470 L 1800,700 Q 1800,712 1788,712 L 972,712 Q 960,712 960,700 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#FF6B6B" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="1010" cy="500" r="18" fill="#FF6B6B" fill-opacity="0.2"/>
+  <text x="1010" y="507" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; font-weight: bold; fill: #FF6B6B;">5</text>
+  <text x="1040" y="507" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #FF6B6B;">推理不稳定</text>
+  <text x="1000" y="545" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">相同输入可能不同输出</text>
+  <text x="1000" y="575" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">复杂推理链容易出错</text>
+  <text x="1000" y="605" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">数学/逻辑能力有限</text>
+  <text x="1000" y="645" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #00F5D4;">→ Agent 解法: CoT + 自我验证</text>
+  <text x="1000" y="680" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #00F5D4;">→ 分步执行 + 结果校验</text>
+
+  <!-- Bottom summary -->
+  <path d="M 200,760 Q 200,748 212,748 L 1708,748 Q 1720,748 1720,760 L 1720,850 Q 1720,862 1708,862 L 212,862 Q 200,862 200,850 Z" fill="#FFFFFF" fill-opacity="0.03" stroke="#7B61FF" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="960" y="795" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #7B61FF;">Agent 的核心价值 = 用工程手段弥补 LLM 的先天限制</text>
+  <text x="960" y="835" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">感知扩展认知 · 工具扩展行动 · 记忆扩展上下文 · 循环保证可靠性</text>
+
+  <text x="1870" y="1050" text-anchor="end" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">08/15</text>
+</svg>

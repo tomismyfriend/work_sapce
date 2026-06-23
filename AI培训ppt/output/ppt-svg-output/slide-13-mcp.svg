@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect x="0" y="0" width="400" height="6" fill="url(#accent)"/>
+
+  <text x="120" y="120" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 48px; font-weight: bold; fill: #FFFFFF;">MCP 协议</text>
+  <rect x="120" y="140" width="200" height="4" fill="url(#accent)"/>
+
+  <text x="120" y="195" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; fill: #00F5D4; font-weight: bold;">Model Context Protocol — AI 世界的 "USB-C" 接口</text>
+
+  <!-- USB-C Analogy -->
+  <path d="M 120,230 Q 120,218 132,218 L 900,218 Q 912,218 912,230 L 912,460 Q 912,472 900,472 L 132,472 Q 120,472 120,460 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="170" y="260" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #7B61FF;">USB-C 类比</text>
+  <line x1="160" y1="280" x2="870" y2="280" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+
+  <text x="170" y="315" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">USB-C 之前:</text>
+  <text x="170" y="345" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">每个设备不同接口 = 每个 AI 不同 API</text>
+  <text x="170" y="375" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">USB-C 之后:</text>
+  <text x="170" y="405" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">统一接口 = MCP 统一工具调用协议</text>
+  <text x="170" y="440" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #00F5D4;">一个协议连接所有工具和服务</text>
+
+  <!-- MCP Architecture -->
+  <path d="M 960,230 Q 960,218 972,218 L 1788,218 Q 1800,218 1800,230 L 1800,460 Q 1800,472 1788,472 L 972,472 Q 960,472 960,460 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="1010" y="260" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #00F5D4;">MCP 架构</text>
+  <line x1="1000" y1="280" x2="1750" y2="280" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+
+  <!-- Host -->
+  <path d="M 1020,300 Q 1020,292 1028,292 L 1240,292 Q 1248,292 1248,300 L 1248,350 Q 1248,358 1240,358 L 1028,358 Q 1020,358 1020,350 Z" fill="#7B61FF" fill-opacity="0.15" stroke="#7B61FF" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="1134" y="332" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; font-weight: bold; fill: #7B61FF;">Host (Cursor)</text>
+
+  <!-- Arrow -->
+  <text x="1280" y="332" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; fill: #FFFFFF; fill-opacity: 0.4;">→</text>
+
+  <!-- Client -->
+  <path d="M 1320,300 Q 1320,292 1328,292 L 1540,292 Q 1548,292 1548,300 L 1548,350 Q 1548,358 1540,358 L 1328,358 Q 1320,358 1320,350 Z" fill="#00F5D4" fill-opacity="0.15" stroke="#00F5D4" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="1434" y="332" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; font-weight: bold; fill: #00F5D4;">MCP Client</text>
+
+  <!-- Arrow -->
+  <text x="1580" y="332" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; fill: #FFFFFF; fill-opacity: 0.4;">→</text>
+
+  <!-- Server -->
+  <path d="M 1620,300 Q 1620,292 1628,292 L 1760,292 Q 1768,292 1768,300 L 1768,350 Q 1768,358 1760,358 L 1628,358 Q 1620,358 1620,350 Z" fill="#FF6B6B" fill-opacity="0.15" stroke="#FF6B6B" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="1694" y="332" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; font-weight: bold; fill: #FF6B6B;">Server</text>
+
+  <text x="1380" y="400" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Host 发起请求 → Client 管理连接 → Server 提供工具</text>
+  <text x="1380" y="435" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">JSON-RPC 2.0 通信 · 支持 stdio 和 HTTP 传输</text>
+
+  <!-- Three capabilities -->
+  <text x="960" y="530" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; font-weight: bold; fill: #FFFFFF;">MCP 三大能力</text>
+
+  <!-- Tools -->
+  <path d="M 120,570 Q 120,558 132,558 L 640,558 Q 652,558 652,570 L 652,770 Q 652,782 640,782 L 132,782 Q 120,782 120,770 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="386" y="605" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #00F5D4;">Tools 工具</text>
+  <line x1="160" y1="620" x2="610" y2="620" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+  <text x="170" y="655" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">Server 暴露可调用的函数</text>
+  <text x="170" y="685" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">类似 Function Calling</text>
+  <text x="170" y="715" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">数据库查询、API 调用等</text>
+  <text x="170" y="755" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #00F5D4;">Agent 的"手" — 执行操作</text>
+
+  <!-- Resources -->
+  <path d="M 680,570 Q 680,558 692,558 L 1200,558 Q 1212,558 1212,570 L 1212,770 Q 1212,782 1200,782 L 692,782 Q 680,782 680,770 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="946" y="605" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #7B61FF;">Resources 资源</text>
+  <line x1="720" y1="620" x2="1170" y2="620" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+  <text x="730" y="655" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">Server 提供数据资源</text>
+  <text x="730" y="685" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">文件内容、数据库记录</text>
+  <text x="730" y="715" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">类似 REST API 的 GET</text>
+  <text x="730" y="755" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #7B61FF;">Agent 的"眼" — 获取信息</text>
+
+  <!-- Prompts -->
+  <path d="M 1240,570 Q 1240,558 1252,558 L 1788,558 Q 1800,558 1800,570 L 1800,770 Q 1800,782 1788,782 L 1252,782 Q 1240,782 1240,770 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#FF6B6B" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="1514" y="605" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #FF6B6B;">Prompts 模板</text>
+  <line x1="1280" y1="620" x2="1750" y2="620" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+  <text x="1290" y="655" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">Server 提供 Prompt 模板</text>
+  <text x="1290" y="685" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">预定义的工作流模板</text>
+  <text x="1290" y="715" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">可参数化调用</text>
+  <text x="1290" y="755" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #FF6B6B;">Agent 的"经验" — 最佳实践</text>
+
+  <!-- Bottom -->
+  <text x="960" y="850" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #00F5D4;">MCP 让任何 AI 应用都能即插即用地接入无限工具和数据源</text>
+
+  <text x="1870" y="1050" text-anchor="end" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">13/15</text>
+</svg>

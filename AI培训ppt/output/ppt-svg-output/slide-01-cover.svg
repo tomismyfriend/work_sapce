@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+
+  <!-- Decorative grid lines -->
+  <line x1="0" y1="270" x2="1920" y2="270" stroke="#FFFFFF" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="0" y1="540" x2="1920" y2="540" stroke="#FFFFFF" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="0" y1="810" x2="1920" y2="810" stroke="#FFFFFF" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="480" y1="0" x2="480" y2="1080" stroke="#FFFFFF" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="960" y1="0" x2="960" y2="1080" stroke="#FFFFFF" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="1440" y1="0" x2="1440" y2="1080" stroke="#FFFFFF" stroke-opacity="0.03" stroke-width="1"/>
+
+  <!-- Top-left accent bar -->
+  <rect x="0" y="0" width="400" height="6" fill="url(#accent)"/>
+
+  <!-- Decorative neon circles -->
+  <circle cx="1600" cy="300" r="200" fill="none" stroke="#00F5D4" stroke-opacity="0.08" stroke-width="1"/>
+  <circle cx="1600" cy="300" r="280" fill="none" stroke="#7B61FF" stroke-opacity="0.06" stroke-width="1"/>
+  <circle cx="1600" cy="300" r="360" fill="none" stroke="#00F5D4" stroke-opacity="0.04" stroke-width="1"/>
+  <circle cx="300" cy="800" r="150" fill="none" stroke="#7B61FF" stroke-opacity="0.06" stroke-width="1"/>
+  <circle cx="300" cy="800" r="220" fill="none" stroke="#00F5D4" stroke-opacity="0.04" stroke-width="1"/>
+
+  <!-- Neon dots -->
+  <circle cx="150" cy="200" r="3" fill="#00F5D4" fill-opacity="0.6"/>
+  <circle cx="1750" cy="150" r="3" fill="#7B61FF" fill-opacity="0.6"/>
+  <circle cx="1800" cy="900" r="3" fill="#00F5D4" fill-opacity="0.6"/>
+  <circle cx="100" cy="950" r="3" fill="#7B61FF" fill-opacity="0.6"/>
+
+  <!-- Main Title -->
+  <text x="960" y="420" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 72px; font-weight: bold; fill: #FFFFFF;">AI Agent 开发与</text>
+  <text x="960" y="520" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 72px; font-weight: bold; fill: #FFFFFF;">智能编程工具实战</text>
+
+  <!-- Gradient underline -->
+  <rect x="710" y="555" width="500" height="4" fill="url(#titleGrad)"/>
+
+  <!-- Subtitle -->
+  <text x="960" y="620" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 28px; fill: #B4B4B4;">从大模型原理到 Agent 架构，从 MCP 协议到编程工具落地</text>
+
+  <!-- Bottom info bar -->
+  <text x="960" y="750" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; fill: #00F5D4; fill-opacity: 0.8;">2025 · 技术分享</text>
+
+  <!-- Page number -->
+  <text x="1870" y="1050" text-anchor="end" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">01/15</text>
+</svg>

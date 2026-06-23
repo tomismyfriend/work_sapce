@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect x="0" y="0" width="400" height="6" fill="url(#accent)"/>
+
+  <text x="120" y="120" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 48px; font-weight: bold; fill: #FFFFFF;">Agent 系统架构</text>
+  <rect x="120" y="140" width="200" height="4" fill="url(#accent)"/>
+
+  <!-- Central LLM Brain -->
+  <path d="M 760,380 Q 760,360 780,360 L 1140,360 Q 1160,360 1160,380 L 1160,520 Q 1160,540 1140,540 L 780,540 Q 760,540 760,520 Z" fill="#7B61FF" fill-opacity="0.15" stroke="#7B61FF" stroke-opacity="0.6" stroke-width="2"/>
+  <text x="960" y="420" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 28px; font-weight: bold; fill: #7B61FF;">LLM 大脑</text>
+  <text x="960" y="460" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">推理 · 规划 · 决策</text>
+  <text x="960" y="490" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">GPT / Claude / Qwen / DeepSeek</text>
+
+  <!-- Module 1: Perception (top-left) -->
+  <path d="M 180,240 Q 180,228 192,228 L 520,228 Q 532,228 532,240 L 532,360 Q 532,372 520,372 L 192,372 Q 180,372 180,360 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="356" y="280" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #00F5D4;">感知模块</text>
+  <text x="356" y="310" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Perception</text>
+  <text x="356" y="345" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">文本 / 图像 / 语音 / API</text>
+  <line x1="532" y1="300" x2="760" y2="420" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="1"/>
+
+  <!-- Module 2: Memory (top-right) -->
+  <path d="M 1388,240 Q 1388,228 1400,228 L 1728,228 Q 1740,228 1740,240 L 1740,360 Q 1740,372 1728,372 L 1400,372 Q 1388,372 1388,360 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="1564" y="280" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #7B61FF;">记忆模块</text>
+  <text x="1564" y="310" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Memory</text>
+  <text x="1564" y="345" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">短期 / 长期 / 向量库</text>
+  <line x1="1388" y1="300" x2="1160" y2="420" stroke="#7B61FF" stroke-opacity="0.3" stroke-width="1"/>
+
+  <!-- Module 3: Planning (bottom-left) -->
+  <path d="M 180,580 Q 180,568 192,568 L 520,568 Q 532,568 532,580 L 532,700 Q 532,712 520,712 L 192,712 Q 180,712 180,700 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#FF6B6B" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="356" y="620" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #FF6B6B;">规划模块</text>
+  <text x="356" y="650" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Planning</text>
+  <text x="356" y="685" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">任务分解 / CoT / ReAct</text>
+  <line x1="532" y1="640" x2="760" y2="490" stroke="#FF6B6B" stroke-opacity="0.3" stroke-width="1"/>
+
+  <!-- Module 4: Action (bottom-right) -->
+  <path d="M 1388,580 Q 1388,568 1400,568 L 1728,568 Q 1740,568 1740,580 L 1740,700 Q 1740,712 1728,712 L 1400,712 Q 1388,712 1388,700 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="1564" y="620" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #00F5D4;">行动模块</text>
+  <text x="1564" y="650" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Action</text>
+  <text x="1564" y="685" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">Function Calling / MCP</text>
+  <line x1="1388" y1="640" x2="1160" y2="490" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="1"/>
+
+  <!-- Module 5: Agent Loop (bottom center) -->
+  <path d="M 700,750 Q 700,738 712,738 L 1208,738 Q 1220,738 1220,750 L 1220,870 Q 1220,882 1208,882 L 712,882 Q 700,882 700,870 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="960" y="790" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #7B61FF;">Agent Loop 控制循环</text>
+  <text x="960" y="825" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">感知 → 思考 → 行动 → 观察 → 循环</text>
+  <text x="960" y="855" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">直到任务完成或达到终止条件</text>
+  <line x1="960" y1="540" x2="960" y2="738" stroke="#7B61FF" stroke-opacity="0.3" stroke-width="1" stroke-dasharray="6,4"/>
+
+  <text x="1870" y="1050" text-anchor="end" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">05/15</text>
+</svg>

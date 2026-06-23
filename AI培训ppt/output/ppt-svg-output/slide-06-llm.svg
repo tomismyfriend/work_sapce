@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect x="0" y="0" width="400" height="6" fill="url(#accent)"/>
+
+  <text x="120" y="120" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 48px; font-weight: bold; fill: #FFFFFF;">LLM 的本质</text>
+  <rect x="120" y="140" width="200" height="4" fill="url(#accent)"/>
+
+  <!-- Core definition -->
+  <path d="M 120,190 Q 120,178 132,178 L 1788,178 Q 1800,178 1800,190 L 1800,290 Q 1800,302 1788,302 L 132,302 Q 120,302 120,290 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="960" y="225" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #7B61FF;">核心本质：下一个 Token 的概率预测器</text>
+  <text x="960" y="265" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">LLM 不"理解"世界，它通过海量文本学习统计规律，预测最可能的下一个词</text>
+
+  <!-- Three training phases -->
+  <text x="960" y="370" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 28px; font-weight: bold; fill: #FFFFFF;">训练三阶段</text>
+
+  <!-- Phase 1: Pre-training -->
+  <path d="M 120,420 Q 120,408 132,408 L 640,408 Q 652,408 652,420 L 652,720 Q 652,732 640,732 L 132,732 Q 120,732 120,720 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="180" cy="450" r="16" fill="#00F5D4" fill-opacity="0.2"/>
+  <text x="180" y="456" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #00F5D4;">1</text>
+  <text x="210" y="456" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #00F5D4;">预训练</text>
+  <text x="210" y="485" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Pre-training</text>
+  <line x1="160" y1="505" x2="610" y2="505" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+  <text x="170" y="540" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">数据规模</text>
+  <text x="170" y="570" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">数万亿 Token 的互联网文本</text>
+  <text x="170" y="610" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">学习目标</text>
+  <text x="170" y="640" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">学习语言规律和世界知识</text>
+  <text x="170" y="680" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">计算成本</text>
+  <text x="170" y="710" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">数千 GPU 训练数月</text>
+
+  <!-- Phase 2: SFT -->
+  <path d="M 680,420 Q 680,408 692,408 L 1200,408 Q 1212,408 1212,420 L 1212,720 Q 1212,732 1200,732 L 692,732 Q 680,732 680,720 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="740" cy="450" r="16" fill="#7B61FF" fill-opacity="0.2"/>
+  <text x="740" y="456" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #7B61FF;">2</text>
+  <text x="770" y="456" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #7B61FF;">监督微调</text>
+  <text x="770" y="485" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Supervised Fine-Tuning</text>
+  <line x1="720" y1="505" x2="1170" y2="505" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+  <text x="730" y="540" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">数据规模</text>
+  <text x="730" y="570" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">数万条人工标注的问答对</text>
+  <text x="730" y="610" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">学习目标</text>
+  <text x="730" y="640" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">学会按指令格式回答问题</text>
+  <text x="730" y="680" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">关键转变</text>
+  <text x="730" y="710" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">从"续写"到"对话"</text>
+
+  <!-- Phase 3: RLHF -->
+  <path d="M 1240,420 Q 1240,408 1252,408 L 1788,408 Q 1800,408 1800,420 L 1800,720 Q 1800,732 1788,732 L 1252,732 Q 1240,732 1240,720 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#FF6B6B" stroke-opacity="0.3" stroke-width="1"/>
+  <circle cx="1300" cy="450" r="16" fill="#FF6B6B" fill-opacity="0.2"/>
+  <text x="1300" y="456" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #FF6B6B;">3</text>
+  <text x="1330" y="456" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; font-weight: bold; fill: #FF6B6B;">人类反馈强化学习</text>
+  <text x="1330" y="485" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">RLHF / DPO</text>
+  <line x1="1280" y1="505" x2="1750" y2="505" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+  <text x="1290" y="540" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">数据规模</text>
+  <text x="1290" y="570" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">人类偏好排序数据</text>
+  <text x="1290" y="610" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">学习目标</text>
+  <text x="1290" y="640" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">对齐人类价值观和偏好</text>
+  <text x="1290" y="680" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">关键转变</text>
+  <text x="1290" y="710" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">从"能回答"到"回答好"</text>
+
+  <!-- Arrows between phases -->
+  <text x="666" y="570" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 28px; fill: #FFFFFF; fill-opacity: 0.3;">→</text>
+  <text x="1226" y="570" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 28px; fill: #FFFFFF; fill-opacity: 0.3;">→</text>
+
+  <!-- Bottom insight -->
+  <path d="M 300,790 Q 300,778 312,778 L 1608,778 Q 1620,778 1620,790 L 1620,870 Q 1620,882 1608,882 L 312,882 Q 300,882 300,870 Z" fill="#FFFFFF" fill-opacity="0.03" stroke="#00F5D4" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="960" y="820" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #00F5D4;">💡 关键认知</text>
+  <text x="960" y="855" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">LLM 是"概率鹦鹉"而非"思考大脑" — 理解这一本质是使用 Agent 的基础</text>
+
+  <text x="1870" y="1050" text-anchor="end" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">06/15</text>
+</svg>

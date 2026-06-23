@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect x="0" y="0" width="400" height="6" fill="url(#accent)"/>
+
+  <text x="120" y="120" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 48px; font-weight: bold; fill: #FFFFFF;">Agent Loop 核心逻辑</text>
+  <rect x="120" y="140" width="200" height="4" fill="url(#accent)"/>
+
+  <text x="120" y="195" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 18px; fill: #B4B4B4;">Agent Loop 是 Agent 的"心跳" — 一个持续运行的感知-思考-行动循环</text>
+
+  <!-- Central loop diagram -->
+  <!-- Perceive -->
+  <path d="M 700,280 Q 700,260 720,260 L 1200,260 Q 1220,260 1220,280 L 1220,370 Q 1220,390 1200,390 L 720,390 Q 700,390 700,370 Z" fill="#00F5D4" fill-opacity="0.1" stroke="#00F5D4" stroke-opacity="0.5" stroke-width="2"/>
+  <text x="960" y="315" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; font-weight: bold; fill: #00F5D4;">1. Perceive 感知</text>
+  <text x="960" y="355" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">收集输入: 用户指令 + 工具结果 + 环境信息</text>
+
+  <!-- Arrow down -->
+  <text x="960" y="420" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 28px; fill: #FFFFFF; fill-opacity: 0.4;">↓</text>
+
+  <!-- Think -->
+  <path d="M 700,440 Q 700,420 720,420 L 1200,420 Q 1220,420 1220,440 L 1220,530 Q 1220,550 1200,550 L 720,550 Q 700,550 700,530 Z" fill="#7B61FF" fill-opacity="0.1" stroke="#7B61FF" stroke-opacity="0.5" stroke-width="2"/>
+  <text x="960" y="475" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; font-weight: bold; fill: #7B61FF;">2. Think 思考</text>
+  <text x="960" y="515" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">LLM 推理: 分析现状 → 制定计划 → 决定下一步行动</text>
+
+  <!-- Arrow down -->
+  <text x="960" y="580" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 28px; fill: #FFFFFF; fill-opacity: 0.4;">↓</text>
+
+  <!-- Act -->
+  <path d="M 700,600 Q 700,580 720,580 L 1200,580 Q 1220,580 1220,600 L 1220,690 Q 1220,710 1200,710 L 720,710 Q 700,710 700,690 Z" fill="#FF6B6B" fill-opacity="0.1" stroke="#FF6B6B" stroke-opacity="0.5" stroke-width="2"/>
+  <text x="960" y="635" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; font-weight: bold; fill: #FF6B6B;">3. Act 行动</text>
+  <text x="960" y="675" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">执行操作: Function Calling → 工具执行 → 获取结果</text>
+
+  <!-- Arrow down -->
+  <text x="960" y="740" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 28px; fill: #FFFFFF; fill-opacity: 0.4;">↓</text>
+
+  <!-- Decision -->
+  <path d="M 750,760 Q 750,745 765,745 L 1155,745 Q 1170,745 1170,760 L 1170,840 Q 1170,855 1155,855 L 765,855 Q 750,855 750,840 Z" fill="#FFFFFF" fill-opacity="0.05" stroke="#00F5D4" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="960" y="790" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #00F5D4;">4. 判断: 任务完成？</text>
+  <text x="960" y="830" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 15px; fill: #B4B4B4;">否 → 回到感知步骤，携带新结果继续循环</text>
+
+  <!-- Loop back arrow (left side) -->
+  <path d="M 700,800 L 500,800 L 500,325 L 700,325" fill="none" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="2" stroke-dasharray="8,4"/>
+  <text x="480" y="565" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #00F5D4; fill-opacity: 0.6;">循环</text>
+
+  <!-- Right side: termination conditions -->
+  <path d="M 1300,440 Q 1300,428 1312,428 L 1788,428 Q 1800,428 1800,440 L 1800,855 Q 1800,867 1788,867 L 1312,867 Q 1300,867 1300,855 Z" fill="#FFFFFF" fill-opacity="0.03" stroke="#7B61FF" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="1550" y="470" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #7B61FF;">终止条件</text>
+  <line x1="1340" y1="490" x2="1760" y2="490" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+  <text x="1350" y="530" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">任务成功完成</text>
+  <text x="1350" y="565" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">LLM 判断目标已达成</text>
+  <text x="1350" y="610" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">达到最大迭代次数</text>
+  <text x="1350" y="645" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">防止无限循环 (如 max=25)</text>
+  <text x="1350" y="690" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">Token 预算耗尽</text>
+  <text x="1350" y="725" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">控制成本上限</text>
+  <text x="1350" y="770" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FFFFFF;">用户中断</text>
+  <text x="1350" y="805" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">人工介入终止任务</text>
+  <text x="1350" y="850" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #FF6B6B;">错误不可恢复</text>
+
+  <!-- Left side: pseudo code -->
+  <path d="M 120,440 Q 120,428 132,428 L 440,428 Q 452,428 452,440 L 452,700 Q 452,712 440,712 L 132,712 Q 120,712 120,700 Z" fill="#FFFFFF" fill-opacity="0.03" stroke="#00F5D4" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="160" y="465" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; font-weight: bold; fill: #00F5D4;">伪代码</text>
+  <text x="160" y="500" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">while not done:</text>
+  <text x="180" y="525" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">obs = perceive()</text>
+  <text x="180" y="550" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">action = think(obs)</text>
+  <text x="180" y="575" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">result = act(action)</text>
+  <text x="180" y="600" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #B4B4B4;">done = check(result)</text>
+  <text x="160" y="640" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 13px; fill: #00F5D4;">return final_result</text>
+
+  <text x="1870" y="1050" text-anchor="end" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">12/15</text>
+</svg>

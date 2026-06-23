@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F5D4"/>
+      <stop offset="100%" stop-color="#7B61FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect x="0" y="0" width="400" height="6" fill="url(#accent)"/>
+
+  <text x="120" y="120" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 48px; font-weight: bold; fill: #FFFFFF;">什么是 AI Agent？</text>
+  <rect x="120" y="140" width="200" height="4" fill="url(#accent)"/>
+
+  <!-- Definition card -->
+  <path d="M 120,190 Q 120,178 132,178 L 1788,178 Q 1800,178 1800,190 L 1800,300 Q 1800,312 1788,312 L 132,312 Q 120,312 120,300 Z" fill="#FFFFFF" fill-opacity="0.05" stroke="#00F5D4" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="960" y="230" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; fill: #00F5D4; font-weight: bold;">定义</text>
+  <text x="960" y="275" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; fill: #FFFFFF;">AI Agent = 能够自主感知环境、做出决策、并采取行动来完成目标的智能程序</text>
+
+  <!-- Five characteristics -->
+  <text x="960" y="380" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 28px; font-weight: bold; fill: #FFFFFF;">五大核心特征</text>
+
+  <!-- Card 1: Autonomy -->
+  <path d="M 120,430 Q 120,418 132,418 L 440,418 Q 452,418 452,430 L 452,620 Q 452,632 440,632 L 132,632 Q 120,632 120,620 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.25" stroke-width="1"/>
+  <circle cx="286" cy="470" r="24" fill="#00F5D4" fill-opacity="0.15"/>
+  <text x="286" y="478" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; fill: #00F5D4;">🤖</text>
+  <text x="286" y="520" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #FFFFFF;">自主性</text>
+  <text x="286" y="550" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Autonomy</text>
+  <text x="286" y="590" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">无需逐步指令</text>
+  <text x="286" y="612" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">自主规划执行</text>
+
+  <!-- Card 2: Reactivity -->
+  <path d="M 480,430 Q 480,418 492,418 L 800,418 Q 812,418 812,430 L 812,620 Q 812,632 800,632 L 492,632 Q 480,632 480,620 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.25" stroke-width="1"/>
+  <circle cx="646" cy="470" r="24" fill="#7B61FF" fill-opacity="0.15"/>
+  <text x="646" y="478" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; fill: #7B61FF;">⚡</text>
+  <text x="646" y="520" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #FFFFFF;">反应性</text>
+  <text x="646" y="550" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Reactivity</text>
+  <text x="646" y="590" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">感知环境变化</text>
+  <text x="646" y="612" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">及时做出响应</text>
+
+  <!-- Card 3: Proactiveness -->
+  <path d="M 840,430 Q 840,418 852,418 L 1160,418 Q 1172,418 1172,430 L 1172,620 Q 1172,632 1160,632 L 852,632 Q 840,632 840,620 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#00F5D4" stroke-opacity="0.25" stroke-width="1"/>
+  <circle cx="1006" cy="470" r="24" fill="#00F5D4" fill-opacity="0.15"/>
+  <text x="1006" y="478" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; fill: #00F5D4;">🎯</text>
+  <text x="1006" y="520" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #FFFFFF;">主动性</text>
+  <text x="1006" y="550" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Proactiveness</text>
+  <text x="1006" y="590" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">目标驱动行为</text>
+  <text x="1006" y="612" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">主动采取行动</text>
+
+  <!-- Card 4: Social Ability -->
+  <path d="M 1200,430 Q 1200,418 1212,418 L 1520,418 Q 1532,418 1532,430 L 1532,620 Q 1532,632 1520,632 L 1212,632 Q 1200,632 1200,620 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#7B61FF" stroke-opacity="0.25" stroke-width="1"/>
+  <circle cx="1366" cy="470" r="24" fill="#7B61FF" fill-opacity="0.15"/>
+  <text x="1366" y="478" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; fill: #7B61FF;">🔗</text>
+  <text x="1366" y="520" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #FFFFFF;">社交能力</text>
+  <text x="1366" y="550" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Social Ability</text>
+  <text x="1366" y="590" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">与其他 Agent</text>
+  <text x="1366" y="612" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">协作完成任务</text>
+
+  <!-- Card 5: Tool Use -->
+  <path d="M 1560,430 Q 1560,418 1572,418 L 1788,418 Q 1800,418 1800,430 L 1800,620 Q 1800,632 1788,632 L 1572,632 Q 1560,632 1560,620 Z" fill="#FFFFFF" fill-opacity="0.04" stroke="#FF6B6B" stroke-opacity="0.25" stroke-width="1"/>
+  <circle cx="1680" cy="470" r="24" fill="#FF6B6B" fill-opacity="0.15"/>
+  <text x="1680" y="478" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; fill: #FF6B6B;">🛠</text>
+  <text x="1680" y="520" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 20px; font-weight: bold; fill: #FFFFFF;">工具使用</text>
+  <text x="1680" y="550" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">Tool Use</text>
+  <text x="1680" y="590" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">调用 API/函数</text>
+  <text x="1680" y="612" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 14px; fill: #B4B4B4;">扩展自身能力</text>
+
+  <!-- Formula -->
+  <path d="M 300,700 Q 300,688 312,688 L 1608,688 Q 1620,688 1620,700 L 1620,810 Q 1620,822 1608,822 L 312,822 Q 300,822 300,810 Z" fill="#FFFFFF" fill-opacity="0.03" stroke="#7B61FF" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="960" y="740" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 24px; font-weight: bold; fill: #7B61FF;">Agent 公式</text>
+  <text x="960" y="790" text-anchor="middle" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 22px; fill: #FFFFFF;">Agent = LLM + 感知 + 记忆 + 规划 + 工具调用</text>
+
+  <text x="1870" y="1050" text-anchor="end" style="font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif; font-size: 16px; fill: #B4B4B4;">04/15</text>
+</svg>

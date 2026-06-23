@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 开发与智能编程工具实战</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #FAFAFA;
+  --text: #1A1A1A;
+  --accent: #FF4500;
+  --secondary: #2563EB;
+  --border: #E5E7EB;
+  --muted: #6B7280;
+  --card-bg: #FFFFFF;
+  --code-bg: #1A1A1A;
+  --font-display: 'DM Sans', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #111;
+  font-family: var(--font-body);
+  color: var(--text);
+}
+
+#deck-viewport {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#deck-container {
+  width: 1920px;
+  height: 1080px;
+  position: relative;
+  transform-origin: center center;
+}
+
+.slide {
+  position: absolute;
+  top: 0; left: 0;
+  width: 1920px;
+  height: 1080px;
+  background: var(--bg);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  transform: translateX(40px);
+  overflow: hidden;
+  padding: 80px;
+  display: flex;
+  flex-direction: column;
+}
+
+.slide.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  z-index: 2;
+}
+
+.slide.prev {
+  transform: translateX(-40px);
+}
+
+.section-number {
+  position: absolute;
+  top: 40px; right: 80px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 180px;
+  color: var(--accent);
+  opacity: 0.08;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.slide-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 56px;
+  color: var(--text);
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.title-accent {
+  width: 80px;
+  height: 5px;
+  background: var(--accent);
+  border-radius: 3px;
+  margin-bottom: 48px;
+}
+
+.slide-subtitle {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 24px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 100px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 18px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+}
+
+.pill.accent {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.pill.secondary {
+  background: var(--secondary);
+  color: #fff;
+  border-color: var(--secondary);
+}
+
+.code-block {
+  background: var(--code-bg);
+  color: #E5E7EB;
+  border-radius: 16px;
+  padding: 32px 40px;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  line-height: 1.7;
+  overflow-x: auto;
+}
+
+.code-block .kw { color: #C084FC; }
+.code-block .fn { color: #60A5FA; }
+.code-block .str { color: #34D399; }
+.code-block .cmt { color: #6B7280; }
+.code-block .num { color: #FBBF24; }
+.code-block .op { color: #F472B6; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 20px;
+}
+
+table thead th {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  padding: 18px 24px;
+  text-align: left;
+  font-family: var(--font-display);
+}
+
+table thead th:first-child { border-radius: 12px 0 0 0; }
+table thead th:last-child { border-radius: 0 12px 0 0; }
+
+table tbody td {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 400;
+}
+
+table tbody tr:last-child td { border-bottom: none; }
+table tbody tr:nth-child(even) { background: #F9FAFB; }
+
+#progress-bar {
+  position: fixed;
+  bottom: 0; left: 0;
+  height: 4px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+  z-index: 100;
+}
+
+#slide-counter {
+  position: fixed;
+  bottom: 24px; right: 32px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: rgba(255,255,255,0.6);
+  z-index: 100;
+  user-select: none;
+}
+
+.icon-circle {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 24px; }
+.grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; }
+
+.flex-row { display: flex; gap: 24px; align-items: stretch; }
+.flex-col { display: flex; flex-direction: column; gap: 24px; }
+.flex-1 { flex: 1; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.gap-16 { gap: 16px; }
+.gap-12 { gap: 12px; }
+.mt-auto { margin-top: auto; }
+.mb-24 { margin-bottom: 24px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-32 { margin-bottom: 32px; }
+.text-center { text-align: center; }
+.text-accent { color: var(--accent); }
+.text-secondary { color: var(--secondary); }
+.text-muted { color: var(--muted); }
+.fw-700 { font-weight: 700; }
+.fw-800 { font-weight: 800; }
+.fs-20 { font-size: 20px; }
+.fs-22 { font-size: 22px; }
+.fs-24 { font-size: 24px; }
+.fs-32 { font-size: 32px; }
+.fs-40 { font-size: 40px; }
+.fs-48 { font-size: 48px; }
+.fs-72 { font-size: 72px; }
+.fs-96 { font-size: 96px; }
+.lh-1 { line-height: 1; }
+
+/* Cover specific */
+.cover-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Timeline */
+.timeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  position: relative;
+  margin-top: 24px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 40px;
+  left: 60px;
+  right: 60px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.timeline-node {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-dot {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-bottom: 24px;
+  position: relative;
+  top: 29px;
+  box-shadow: 0 0 0 6px rgba(255,69,0,0.15);
+}
+
+.timeline-content {
+  text-align: center;
+  padding: 0 16px;
+  margin-top: 24px;
+}
+
+/* Diagram styles */
+.diagram-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.module-box {
+  padding: 20px 28px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 20px;
+  text-align: center;
+  border: 2px solid var(--border);
+  background: var(--card-bg);
+}
+
+.llm-brain {
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #FF6B35);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 32px;
+  box-shadow: 0 8px 32px rgba(255,69,0,0.3);
+}
+
+.arrow-line {
+  width: 60px;
+  height: 3px;
+  background: var(--accent);
+  position: relative;
+}
+
+.arrow-line::after {
+  content: '';
+  position: absolute;
+  right: -2px; top: -6px;
+  border: 7px solid transparent;
+  border-left: 10px solid var(--accent);
+}
+
+/* Flow diagram */
+.flow-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.flow-box {
+  padding: 24px 36px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 22px;
+  text-align: center;
+}
+
+.flow-arrow {
+  font-size: 32px;
+  color: var(--accent);
+  font-weight: 800;
+}
+
+/* Analogy */
+.analogy-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.analogy-vs {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--accent);
+  padding: 0 32px;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slide.active .animate-in {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.slide.active .animate-in:nth-child(1) { animation-delay: 0.1s; }
+.slide.active .animate-in:nth-child(2) { animation-delay: 0.2s; }
+.slide.active .animate-in:nth-child(3) { animation-delay: 0.3s; }
+.slide.active .animate-in:nth-child(4) { animation-delay: 0.4s; }
+.slide.active .animate-in:nth-child(5) { animation-delay: 0.5s; }
+.slide.active .animate-in:nth-child(6) { animation-delay: 0.6s; }
+
+.animate-in { opacity: 0; }
+</style>
+</head>
+<body>
+
+<div id="deck-viewport">
+  <div id="deck-container">
+
+    <!-- Slide 1: Cover -->
+    <section class="slide" data-slide="1">
+      <div class="cover-center">
+        <div style="width:120px;height:5px;background:var(--accent);border-radius:3px;margin-bottom:48px;"></div>
+        <h1 style="font-family:var(--font-display);font-weight:800;font-size:80px;line-height:1.15;margin-bottom:32px;letter-spacing:-1px;">
+          AI Agent 开发<br>与智能编程工具实战
+        </h1>
+        <p style="font-size:28px;color:var(--muted);font-weight:400;margin-bottom:48px;">
+          从大语言模型到自主智能体 — 构建下一代 AI 应用
+        </p>
+        <div style="display:flex;gap:16px;align-items:center;">
+          <span class="pill accent">2025 Edition</span>
+          <span class="pill" style="color:var(--muted);">Build Studio</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 2: Agenda -->
+    <section class="slide" data-slide="2">
+      <span class="section-number">02</span>
+      <h2 class="slide-title">课程大纲</h2>
+      <div class="title-accent"></div>
+      <div class="grid-3 flex-1" style="align-items:stretch;">
+        <div class="card animate-in" style="border-top:4px solid var(--accent);">
+          <div style="font-size:64px;font-weight:800;color:var(--accent);opacity:0.2;margin-bottom:16px;">01</div>
+          <h3 style="font-size:28px;font-weight:800;margin-bottom:16px;">总论</h3>
+          <p style="font-size:18px;color:var(--muted);line-height:1.8;">
+            为什么需要 Agent<br>
+            什么是 AI Agent<br>
+            Agent 架构全景
+          </p>
+        </div>
+        <div class="card animate-in" style="border-top:4px solid var(--secondary);">
+          <div style="font-size:64px;font-weight:800;color:var(--secondary);opacity:0.2;margin-bottom:16px;">02</div>
+          <h3 style="font-size:28px;font-weight:800;margin-bottom:16px;">分论</h3>
+          <p style="font-size:18px;color:var(--muted);line-height:1.8;">
+            LLM 核心原理<br>
+            Token 与成本<br>
+            感知 / 行动 / 记忆
+          </p>
+        </div>
+        <div class="card animate-in" style="border-top:4px solid #10B981;">
+          <div style="font-size:64px;font-weight:800;color:#10B981;opacity:0.2;margin-bottom:16px;">03</div>
+          <h3 style="font-size:28px;font-weight:800;margin-bottom:16px;">实战</h3>
+          <p style="font-size:18px;color:var(--muted);line-height:1.8;">
+            Agent Loop 实现<br>
+            MCP 协议详解<br>
+            编程工具对比
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 3: Why Agent -->
+    <section class="slide" data-slide="3">
+      <span class="section-number">03</span>
+      <h2 class="slide-title">为什么需要 Agent？</h2>
+      <div class="title-accent"></div>
+      <p class="slide-subtitle mb-32">AI 正在从"回答问题"走向"自主完成任务"</p>
+      <div class="timeline flex-1">
+        <div class="timeline-node animate-in">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div style="font-size:36px;font-weight:800;color:var(--accent);margin-bottom:12px;">2023</div>
+            <div class="card" style="padding:24px;">
+              <h4 style="font-weight:700;font-size:22px;margin-bottom:8px;">Chat 时代</h4>
+              <p style="font-size:17px;color:var(--muted);line-height:1.6;">ChatGPT 引爆大模型<br>人机对话，单轮问答<br>模型能力惊艳但有限</p>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-node animate-in">
+          <div class="timeline-dot" style="background:var(--secondary);box-shadow:0 0 0 6px rgba(37,99,235,0.15);"></div>
+          <div class="timeline-content">
+            <div style="font-size:36px;font-weight:800;color:var(--secondary);margin-bottom:12px;">2024</div>
+            <div class="card" style="padding:24px;">
+              <h4 style="font-weight:700;font-size:22px;margin-bottom:8px;">Copilot 时代</h4>
+              <p style="font-size:17px;color:var(--muted);line-height:1.6;">AI 辅助编程成为主流<br>RAG + 工具调用兴起<br>多模态能力涌现</p>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-node animate-in">
+          <div class="timeline-dot" style="background:#10B981;box-shadow:0 0 0 6px rgba(16,185,129,0.15);"></div>
+          <div class="timeline-content">
+            <div style="font-size:36px;font-weight:800;color:#10B981;margin-bottom:12px;">2025+</div>
+            <div class="card" style="padding:24px;">
+              <h4 style="font-weight:700;font-size:22px;margin-bottom:8px;">Agent 时代</h4>
+              <p style="font-size:17px;color:var(--muted);line-height:1.6;">自主规划与执行任务<br>多 Agent 协作系统<br>AI 原生工作流</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 4: What is Agent -->
+    <section class="slide" data-slide="4">
+      <span class="section-number">04</span>
+      <h2 class="slide-title">什么是 AI Agent？</h2>
+      <div class="title-accent"></div>
+      <div class="flex-row flex-1" style="gap:48px;align-items:center;">
+        <div class="flex-1">
+          <div class="card animate-in" style="border-left:5px solid var(--accent);padding:48px;">
+            <p style="font-size:26px;line-height:1.8;font-weight:500;">
+              AI Agent 是一个以 <strong style="color:var(--accent);">大语言模型</strong> 为决策核心，
+              能够自主 <strong>感知环境</strong>、<strong>制定计划</strong>、
+              <strong>调用工具</strong>、<strong>执行行动</strong> 并
+              <strong>持续迭代</strong> 的智能系统。
+            </p>
+          </div>
+        </div>
+        <div class="flex-1" style="display:flex;flex-direction:column;gap:16px;">
+          <div class="pill accent animate-in" style="font-size:20px;padding:16px 28px;justify-content:center;">🧠 &nbsp;自主决策与推理</div>
+          <div class="pill secondary animate-in" style="font-size:20px;padding:16px 28px;justify-content:center;">🔧 &nbsp;工具调用能力</div>
+          <div class="pill animate-in" style="font-size:20px;padding:16px 28px;justify-content:center;border-color:var(--accent);color:var(--accent);">📋 &nbsp;任务规划与分解</div>
+          <div class="pill animate-in" style="font-size:20px;padding:16px 28px;justify-content:center;border-color:var(--secondary);color:var(--secondary);">💾 &nbsp;记忆与上下文管理</div>
+          <div class="pill animate-in" style="font-size:20px;padding:16px 28px;justify-content:center;border-color:#10B981;color:#10B981;">🔄 &nbsp;反馈循环与自我修正</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 5: Architecture -->
+    <section class="slide" data-slide="5">
+      <span class="section-number">05</span>
+      <h2 class="slide-title">Agent 系统架构</h2>
+      <div class="title-accent"></div>
+      <div class="diagram-center flex-1">
+        <div style="display:grid;grid-template-columns:200px 80px 240px 80px 200px;grid-template-rows:auto auto auto;gap:24px;align-items:center;justify-items:center;">
+          <!-- Top modules -->
+          <div class="module-box animate-in" style="grid-column:1;grid-row:1;border-color:var(--secondary);">
+            <div style="font-size:28px;margin-bottom:8px;">👁️</div>
+            感知模块
+          </div>
+          <div class="arrow-line animate-in" style="grid-column:2;grid-row:1;"></div>
+          <div class="llm-brain animate-in" style="grid-column:3;grid-row:1 / span 3;">
+            <div style="text-align:center;">
+              <div style="font-size:40px;margin-bottom:8px;">🧠</div>
+              LLM<br>
+              <span style="font-size:16px;font-weight:500;opacity:0.8;">决策核心</span>
+            </div>
+          </div>
+          <div class="arrow-line animate-in" style="grid-column:4;grid-row:1;"></div>
+          <div class="module-box animate-in" style="grid-column:5;grid-row:1;border-color:var(--accent);">
+            <div style="font-size:28px;margin-bottom:8px;">⚡</div>
+            行动模块
+          </div>
+          <!-- Bottom modules -->
+          <div class="module-box animate-in" style="grid-column:1;grid-row:3;border-color:#10B981;">
+            <div style="font-size:28px;margin-bottom:8px;">💾</div>
+            记忆模块
+          </div>
+          <div class="arrow-line animate-in" style="grid-column:2;grid-row:3;"></div>
+          <div class="arrow-line animate-in" style="grid-column:4;grid-row:3;"></div>
+          <div class="module-box animate-in" style="grid-column:5;grid-row:3;border-color:#8B5CF6;">
+            <div style="font-size:28px;margin-bottom:8px;">🔌</div>
+            工具模块
+          </div>
+        </div>
+      </div>
+      <p class="text-center text-muted fs-20" style="margin-top:24px;">五大模块协同工作，LLM 作为中央大脑统一调度</p>
+    </section>
+
+    <!-- Slide 6: LLM -->
+    <section class="slide" data-slide="6">
+      <span class="section-number">06</span>
+      <h2 class="slide-title">LLM 核心原理</h2>
+      <div class="title-accent"></div>
+      <div class="flex-row flex-1" style="gap:48px;">
+        <div class="flex-1" style="display:flex;flex-direction:column;justify-content:center;">
+          <div class="card animate-in" style="background:linear-gradient(135deg,#FFF7ED,#FEF3C7);border:none;padding:48px;text-align:center;">
+            <div style="font-size:64px;margin-bottom:16px;">🎯</div>
+            <h3 style="font-size:36px;font-weight:800;margin-bottom:16px;">下一个词预测器</h3>
+            <p style="font-size:20px;color:var(--muted);line-height:1.7;">
+              LLM 的本质是一个超级概率模型：<br>
+              给定前文，预测下一个最可能的 Token
+            </p>
+            <div class="code-block" style="margin-top:24px;text-align:left;font-size:16px;">
+              <span class="str">"今天天气真"</span> → P(<span class="str">"好"</span>) = <span class="num">0.72</span><br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;P(<span class="str">"热"</span>) = <span class="num">0.15</span><br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;P(<span class="str">"冷"</span>) = <span class="num">0.08</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex-1 flex-col" style="justify-content:center;">
+          <h3 class="fw-700 fs-24 mb-24">三阶段训练</h3>
+          <div class="card animate-in" style="border-left:4px solid var(--accent);">
+            <div style="display:flex;align-items:center;gap:16px;">
+              <span style="font-size:32px;font-weight:800;color:var(--accent);">1</span>
+              <div>
+                <h4 class="fw-700 fs-22">预训练 (Pre-training)</h4>
+                <p class="text-muted" style="font-size:17px;">海量文本数据，学习语言规律与世界知识</p>
+              </div>
+            </div>
+          </div>
+          <div class="card animate-in" style="border-left:4px solid var(--secondary);">
+            <div style="display:flex;align-items:center;gap:16px;">
+              <span style="font-size:32px;font-weight:800;color:var(--secondary);">2</span>
+              <div>
+                <h4 class="fw-700 fs-22">监督微调 (SFT)</h4>
+                <p class="text-muted" style="font-size:17px;">高质量问答对，学会遵循指令回答问题</p>
+              </div>
+            </div>
+          </div>
+          <div class="card animate-in" style="border-left:4px solid #10B981;">
+            <div style="display:flex;align-items:center;gap:16px;">
+              <span style="font-size:32px;font-weight:800;color:#10B981;">3</span>
+              <div>
+                <h4 class="fw-700 fs-22">强化学习 (RLHF)</h4>
+                <p class="text-muted" style="font-size:17px;">人类偏好反馈，对齐价值观与输出质量</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 7: Token -->
+    <section class="slide" data-slide="7">
+      <span class="section-number">07</span>
+      <h2 class="slide-title">Token — AI 的计量单位</h2>
+      <div class="title-accent"></div>
+      <div class="flex-row flex-1" style="gap:48px;">
+        <div class="flex-1" style="display:flex;flex-direction:column;justify-content:center;">
+          <div class="card animate-in" style="padding:40px;">
+            <h3 class="fw-700 fs-24 mb-16">什么是 Token？</h3>
+            <p class="fs-20" style="line-height:1.8;color:var(--muted);margin-bottom:24px;">
+              Token 是 LLM 处理文本的最小单元。<br>
+              英文中 1 Token ≈ 4 字符 / 0.75 个单词<br>
+              中文中 1 个汉字 ≈ 1-2 个 Token
+            </p>
+            <div class="code-block" style="font-size:16px;">
+              <span class="cmt">// Tokenization 示例</span><br>
+              <span class="str">"Hello World"</span> → [<span class="str">"Hello"</span>, <span class="str">" World"</span>] = <span class="num">2</span> tokens<br>
+              <span class="str">"人工智能"</span>&nbsp;&nbsp;&nbsp;→ [<span class="str">"人工"</span>, <span class="str">"智能"</span>] = <span class="num">2</span> tokens
+            </div>
+          </div>
+        </div>
+        <div class="flex-1" style="display:flex;flex-direction:column;justify-content:center;">
+          <h3 class="fw-700 fs-24 mb-16">成本对比 (每百万 Token)</h3>
+          <div class="animate-in" style="border-radius:16px;overflow:hidden;border:1px solid var(--border);">
+            <table>
+              <thead>
+                <tr>
+                  <th>模型</th>
+                  <th>输入</th>
+                  <th>输出</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fw-700">GPT-4o</td>
+                  <td>$2.50</td>
+                  <td>$10.00</td>
+                </tr>
+                <tr>
+                  <td class="fw-700">Claude 3.5</td>
+                  <td>$3.00</td>
+                  <td>$15.00</td>
+                </tr>
+                <tr>
+                  <td class="fw-700">Qwen-Max</td>
+                  <td>¥2.00</td>
+                  <td>¥6.00</td>
+                </tr>
+                <tr>
+                  <td class="fw-700">DeepSeek-V3</td>
+                  <td>¥1.00</td>
+                  <td>¥2.00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="text-muted fs-20" style="margin-top:16px;">💡 成本意识是 Agent 开发者的核心素养</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 8: LLM Limits -->
+    <section class="slide" data-slide="8">
+      <span class="section-number">08</span>
+      <h2 class="slide-title">LLM 的五大局限</h2>
+      <div class="title-accent"></div>
+      <div class="grid-5 flex-1" style="align-items:stretch;">
+        <div class="card animate-in text-center" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+          <div class="icon-circle" style="background:#FEF2F2;color:var(--accent);font-size:32px;">🎭</div>
+          <h4 class="fw-700 fs-22">幻觉</h4>
+          <p class="text-muted" style="font-size:16px;line-height:1.6;">一本正经地<br>胡说八道</p>
+        </div>
+        <div class="card animate-in text-center" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+          <div class="icon-circle" style="background:#EFF6FF;color:var(--secondary);font-size:32px;">📅</div>
+          <h4 class="fw-700 fs-22">知识截止</h4>
+          <p class="text-muted" style="font-size:16px;line-height:1.6;">训练数据有<br>时间边界</p>
+        </div>
+        <div class="card animate-in text-center" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+          <div class="icon-circle" style="background:#F0FDF4;color:#10B981;font-size:32px;">🔢</div>
+          <h4 class="fw-700 fs-22">计算弱</h4>
+          <p class="text-muted" style="font-size:16px;line-height:1.6;">数学推理与<br>精确计算差</p>
+        </div>
+        <div class="card animate-in text-center" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+          <div class="icon-circle" style="background:#FDF4FF;color:#8B5CF6;font-size:32px;">📏</div>
+          <h4 class="fw-700 fs-22">上下文窗口</h4>
+          <p class="text-muted" style="font-size:16px;line-height:1.6;">记忆容量有<br>硬性上限</p>
+        </div>
+        <div class="card animate-in text-center" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+          <div class="icon-circle" style="background:#FFF7ED;color:#D97706;font-size:32px;">🚫</div>
+          <h4 class="fw-700 fs-22">无法行动</h4>
+          <p class="text-muted" style="font-size:16px;line-height:1.6;">只能生成文本<br>不能操作外部</p>
+        </div>
+      </div>
+      <p class="text-center text-muted fs-22" style="margin-top:32px;font-weight:500;">
+        → 这正是 Agent 存在的意义：用系统工程弥补模型短板
+      </p>
+    </section>
+
+    <!-- Slide 9: Perception -->
+    <section class="slide" data-slide="9">
+      <span class="section-number">09</span>
+      <h2 class="slide-title">感知 — Agent 的眼睛和耳朵</h2>
+      <div class="title-accent"></div>
+      <div class="grid-5 flex-1" style="align-items:stretch;">
+        <div class="card animate-in" style="display:flex;flex-direction:column;gap:16px;">
+          <div style="font-size:40px;">📝</div>
+          <h4 class="fw-700 fs-22">文本输入</h4>
+          <p class="text-muted" style="font-size:16px;line-height:1.6;">用户指令、对话消息、文档内容</p>
+          <div class="pill" style="font-size:14px;align-self:flex-start;">最基础</div>
+        </div>
+        <div class="card animate-in" style="display:flex;flex-direction:column;gap:16px;">
+          <div style="font-size:40px;">🖼️</div>
+          <h4 class="fw-700 fs-22">图像理解</h4>
+          <p class="text-muted" style="font-size:16px;line-height:1.6;">截图分析、UI 识别、图表解读</p>
+          <div class="pill secondary" style="font-size:14px;align-self:flex-start;">多模态</div>
+        </div>
+        <div class="card animate-in" style="display:flex;flex-direction:column;gap:16px;">
+          <div style="font-size:40px;">🔍</div>
+          <h4 class="fw-700 fs-22">搜索检索</h4>
+          <p class="text-muted" style="font-size:16px;line-height:1.6;">RAG 知识库、网页搜索、API 查询</p>
+          <div class="pill" style="font-size:14px;align-self:flex-start;border-color:var(--accent);color:var(--accent);">外部知识</div>
+        </div>
+        <div class="card animate-in" style="display:flex;flex-direction:column;gap:16px;">
+          <div style="font-size:40px;">📂</div>
+          <h4 class="fw-700 fs-22">文件系统</h4>
+          <p class="text-muted" style="font-size:16px;line-height:1.6;">读取代码、配置文件、项目结构</p>
+          <div class="pill" style="font-size:14px;align-self:flex-start;border-color:#10B981;color:#10B981;">编程核心</div>
+        </div>
+        <div class="card animate-in" style="display:flex;flex-direction:column;gap:16px;">
+          <div style="font-size:40px;">📡</div>
+          <h4 class="fw-700 fs-22">环境反馈</h4>
+          <p class="text-muted" style="font-size:16px;line-height:1.6;">命令输出、错误信息、测试结果</p>
+          <div class="pill" style="font-size:14px;align-self:flex-start;border-color:#8B5CF6;color:#8B5CF6;">闭环关键</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 10: Action -->
+    <section class="slide" data-slide="10">
+      <span class="section-number">10</span>
+      <h2 class="slide-title">行动 — Function Calling</h2>
+      <div class="title-accent"></div>
+      <div class="flex-1" style="display:flex;flex-direction:column;justify-content:center;gap:48px;">
+        <div class="flow-row animate-in">
+          <div class="flow-box" style="background:#EFF6FF;border:2px solid var(--secondary);color:var(--secondary);">
+            👤 用户请求
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box" style="background:linear-gradient(135deg,var(--accent),#FF6B35);color:#fff;border:none;">
+            🧠 LLM 推理
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box" style="background:#F0FDF4;border:2px solid #10B981;color:#10B981;">
+            🔧 选择工具
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box" style="background:#FDF4FF;border:2px solid #8B5CF6;color:#8B5CF6;">
+            ⚡ 执行函数
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box" style="background:#FFF7ED;border:2px solid var(--accent);color:var(--accent);">
+            📤 返回结果
+          </div>
+        </div>
+        <div class="code-block animate-in" style="font-size:17px;">
+<span class="cmt">// Function Calling 示例</span>
+{
+  <span class="str">"name"</span>: <span class="str">"search_web"</span>,
+  <span class="str">"description"</span>: <span class="str">"搜索互联网获取最新信息"</span>,
+  <span class="str">"parameters"</span>: {
+    <span class="str">"query"</span>: { <span class="str">"type"</span>: <span class="str">"string"</span>, <span class="str">"description"</span>: <span class="str">"搜索关键词"</span> },
+    <span class="str">"max_results"</span>: { <span class="str">"type"</span>: <span class="str">"integer"</span>, <span class="str">"default"</span>: <span class="num">5</span> }
+  }
+}
+<span class="cmt">// LLM 输出: { "name": "search_web", "arguments": { "query": "2025 AI trends" } }</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 11: Memory -->
+    <section class="slide" data-slide="11">
+      <span class="section-number">11</span>
+      <h2 class="slide-title">记忆 — Agent 的存储系统</h2>
+      <div class="title-accent"></div>
+      <div class="grid-3 flex-1" style="align-items:stretch;">
+        <div class="card animate-in" style="display:flex;flex-direction:column;border-top:5px solid var(--accent);">
+          <div style="font-size:48px;margin-bottom:16px;">⚡</div>
+          <h3 class="fw-800 fs-32 mb-16">短期记忆</h3>
+          <p class="fw-700 text-accent fs-20 mb-16">Working Memory</p>
+          <ul style="font-size:18px;line-height:2;color:var(--muted);list-style:none;">
+            <li>• 当前对话上下文</li>
+            <li>• 中间推理步骤</li>
+            <li>• 工具调用结果</li>
+            <li>• 受 Token 窗口限制</li>
+          </ul>
+          <div class="mt-auto" style="margin-top:auto;padding-top:24px;">
+            <div style="background:#FEF2F2;padding:12px 20px;border-radius:8px;font-size:16px;color:var(--accent);font-weight:500;">
+              容量：~128K tokens
+            </div>
+          </div>
+        </div>
+        <div class="card animate-in" style="display:flex;flex-direction:column;border-top:5px solid var(--secondary);">
+          <div style="font-size:48px;margin-bottom:16px;">💾</div>
+          <h3 class="fw-800 fs-32 mb-16">长期记忆</h3>
+          <p class="fw-700 text-secondary fs-20 mb-16">Long-term Memory</p>
+          <ul style="font-size:18px;line-height:2;color:var(--muted);list-style:none;">
+            <li>• 向量数据库存储</li>
+            <li>• 历史对话摘要</li>
+            <li>• 用户偏好画像</li>
+            <li>• 语义相似度检索</li>
+          </ul>
+          <div style="background:#EFF6FF;padding:12px 20px;border-radius:8px;font-size:16px;color:var(--secondary);font-weight:500;margin-top:auto;">
+            容量：理论上无限
+          </div>
+        </div>
+        <div class="card animate-in" style="display:flex;flex-direction:column;border-top:5px solid #10B981;">
+          <div style="font-size:48px;margin-bottom:16px;">📐</div>
+          <h3 class="fw-800 fs-32 mb-16">程序记忆</h3>
+          <p class="fw-700 fs-20 mb-16" style="color:#10B981;">Procedural Memory</p>
+          <ul style="font-size:18px;line-height:2;color:var(--muted);list-style:none;">
+            <li>• 系统 Prompt 模板</li>
+            <li>• 工具使用规范</li>
+            <li>• 工作流定义</li>
+            <li>• 代码中的硬编码逻辑</li>
+          </ul>
+          <div style="background:#F0FDF4;padding:12px 20px;border-radius:8px;font-size:16px;color:#10B981;font-weight:500;margin-top:auto;">
+            容量：由代码定义
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 12: Agent Loop -->
+    <section class="slide" data-slide="12">
+      <span class="section-number">12</span>
+      <h2 class="slide-title">Agent Loop — 核心执行循环</h2>
+      <div class="title-accent"></div>
+      <div class="flex-row flex-1" style="gap:48px;">
+        <div class="flex-1" style="display:flex;flex-direction:column;justify-content:center;">
+          <div class="code-block animate-in" style="font-size:16px;line-height:1.8;">
+<span class="kw">async function</span> <span class="fn">agentLoop</span>(task, tools) {
+  <span class="kw">let</span> messages = [
+    { role: <span class="str">"system"</span>, content: SYSTEM_PROMPT },
+    { role: <span class="str">"user"</span>, content: task }
+  ];
+
+  <span class="kw">while</span> (<span class="num">true</span>) {
+    <span class="cmt">// 1. LLM 思考与决策</span>
+    <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">llm.chat</span>(messages);
+
+    <span class="cmt">// 2. 检查是否有工具调用</span>
+    <span class="kw">if</span> (response.tool_calls?.length) {
+      <span class="kw">for</span> (<span class="kw">const</span> call <span class="kw">of</span> response.tool_calls) {
+        <span class="cmt">// 3. 执行工具</span>
+        <span class="kw">const</span> result = <span class="kw">await</span> <span class="fn">executeTool</span>(call);
+        messages.<span class="fn">push</span>({
+          role: <span class="str">"tool"</span>,
+          content: result
+        });
+      }
+      <span class="kw">continue</span>; <span class="cmt">// 回到循环开头</span>
+    }
+
+    <span class="cmt">// 4. 没有工具调用 → 最终回答</span>
+    <span class="kw">return</span> response.content;
+  }
+}
+          </div>
+        </div>
+        <div class="flex-1" style="display:flex;flex-direction:column;justify-content:center;gap:24px;">
+          <h3 class="fw-700 fs-24 mb-16">执行流程</h3>
+          <div class="card animate-in" style="padding:24px;display:flex;align-items:center;gap:20px;">
+            <div style="width:48px;height:48px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex-shrink:0;">1</div>
+            <div>
+              <h4 class="fw-700 fs-20">接收任务</h4>
+              <p class="text-muted" style="font-size:16px;">构建初始消息列表</p>
+            </div>
+          </div>
+          <div class="card animate-in" style="padding:24px;display:flex;align-items:center;gap:20px;">
+            <div style="width:48px;height:48px;border-radius:50%;background:var(--secondary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex-shrink:0;">2</div>
+            <div>
+              <h4 class="fw-700 fs-20">LLM 决策</h4>
+              <p class="text-muted" style="font-size:16px;">推理下一步行动或直接回答</p>
+            </div>
+          </div>
+          <div class="card animate-in" style="padding:24px;display:flex;align-items:center;gap:20px;">
+            <div style="width:48px;height:48px;border-radius:50%;background:#10B981;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex-shrink:0;">3</div>
+            <div>
+              <h4 class="fw-700 fs-20">执行工具</h4>
+              <p class="text-muted" style="font-size:16px;">调用函数并将结果喂回 LLM</p>
+            </div>
+          </div>
+          <div class="card animate-in" style="padding:24px;display:flex;align-items:center;gap:20px;">
+            <div style="width:48px;height:48px;border-radius:50%;background:#8B5CF6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex-shrink:0;">4</div>
+            <div>
+              <h4 class="fw-700 fs-20">循环或终止</h4>
+              <p class="text-muted" style="font-size:16px;">继续迭代直到任务完成</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 13: MCP -->
+    <section class="slide" data-slide="13">
+      <span class="section-number">13</span>
+      <h2 class="slide-title">MCP — 模型上下文协议</h2>
+      <div class="title-accent"></div>
+      <div class="flex-row flex-1" style="gap:32px;align-items:center;">
+        <div class="analogy-side animate-in">
+          <div class="card" style="padding:40px;text-align:center;width:100%;border:2px dashed var(--border);">
+            <h3 class="fw-800 fs-24 mb-16" style="color:var(--muted);">❌ Before MCP</h3>
+            <div style="display:flex;flex-direction:column;gap:12px;align-items:center;">
+              <div style="padding:12px 24px;background:#FEF2F2;border-radius:8px;font-size:16px;">Agent A → 自定义 API → Tool 1</div>
+              <div style="padding:12px 24px;background:#FEF2F2;border-radius:8px;font-size:16px;">Agent B → 自定义 API → Tool 1</div>
+              <div style="padding:12px 24px;background:#FEF2F2;border-radius:8px;font-size:16px;">Agent A → 自定义 API → Tool 2</div>
+              <div style="padding:12px 24px;background:#FEF2F2;border-radius:8px;font-size:16px;">Agent C → 自定义 API → Tool 3</div>
+            </div>
+            <p class="text-muted" style="margin-top:16px;font-size:16px;">N 个 Agent × M 个工具 = N×M 个集成</p>
+          </div>
+        </div>
+        <div class="analogy-vs animate-in">
+          <div style="text-align:center;">
+            <div style="font-size:64px;margin-bottom:12px;">🔌</div>
+            <div style="font-size:24px;font-weight:800;color:var(--accent);">USB-C</div>
+            <div style="font-size:16px;color:var(--muted);">类比</div>
+            <div style="font-size:48px;font-weight:800;color:var(--accent);margin:16px 0;">→</div>
+          </div>
+        </div>
+        <div class="analogy-side animate-in">
+          <div class="card" style="padding:40px;text-align:center;width:100%;border:2px solid var(--accent);">
+            <h3 class="fw-800 fs-24 mb-16 text-accent">✅ With MCP</h3>
+            <div style="display:flex;flex-direction:column;gap:12px;align-items:center;">
+              <div style="padding:12px 24px;background:#F0FDF4;border-radius:8px;font-size:16px;">Agent A → MCP → Tool 1</div>
+              <div style="padding:12px 24px;background:#F0FDF4;border-radius:8px;font-size:16px;">Agent B → MCP → Tool 2</div>
+              <div style="padding:12px 24px;background:#F0FDF4;border-radius:8px;font-size:16px;">Agent C → MCP → Tool 3</div>
+              <div style="padding:12px 24px;background:#F0FDF4;border-radius:8px;font-size:16px;">Any Agent → MCP → Any Tool</div>
+            </div>
+            <p style="margin-top:16px;font-size:16px;color:var(--accent);font-weight:500;">统一协议 = 即插即用</p>
+          </div>
+        </div>
+      </div>
+      <p class="text-center text-muted fs-20" style="margin-top:24px;">
+        MCP (Model Context Protocol) by Anthropic — AI 世界的 USB-C 标准
+      </p>
+    </section>
+
+    <!-- Slide 14: Coding Tools -->
+    <section class="slide" data-slide="14">
+      <span class="section-number">14</span>
+      <h2 class="slide-title">AI 编程工具对比</h2>
+      <div class="title-accent"></div>
+      <div class="grid-3 flex-1" style="align-items:stretch;">
+        <div class="card animate-in" style="display:flex;flex-direction:column;">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+            <div class="icon-circle" style="background:#EFF6FF;color:var(--secondary);font-size:24px;">🤖</div>
+            <div>
+              <h3 class="fw-800 fs-28">Copilot</h3>
+              <p class="text-muted" style="font-size:16px;">by GitHub / Microsoft</p>
+            </div>
+          </div>
+          <ul style="font-size:18px;line-height:2.2;color:var(--muted);list-style:none;flex:1;">
+            <li>✅ IDE 深度集成 (VS Code)</li>
+            <li>✅ 行级 / 块级代码补全</li>
+            <li>✅ Chat + Agent 模式</li>
+            <li>⚠️ 依赖 GitHub 生态</li>
+            <li>⚠️ Agent 能力较新</li>
+          </ul>
+          <div style="margin-top:24px;padding:16px;background:#F9FAFB;border-radius:12px;text-align:center;">
+            <span class="fw-700 fs-20">$10-39/月</span>
+          </div>
+        </div>
+        <div class="card animate-in" style="display:flex;flex-direction:column;border:2px solid var(--accent);">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+            <div class="icon-circle" style="background:#FEF2F2;color:var(--accent);font-size:24px;">⚡</div>
+            <div>
+              <h3 class="fw-800 fs-28">Cursor</h3>
+              <p class="text-muted" style="font-size:16px;">by Anysphere</p>
+            </div>
+          </div>
+          <ul style="font-size:18px;line-height:2.2;color:var(--muted);list-style:none;flex:1;">
+            <li>✅ AI-first 编辑器</li>
+            <li>✅ 全项目上下文理解</li>
+            <li>✅ Composer 多步编辑</li>
+            <li>✅ Tab 智能补全</li>
+            <li>⚠️ 闭源，数据上云</li>
+          </ul>
+          <div style="margin-top:24px;padding:16px;background:#FFF7ED;border-radius:12px;text-align:center;">
+            <span class="fw-700 fs-20 text-accent">$20/月</span>
+          </div>
+        </div>
+        <div class="card animate-in" style="display:flex;flex-direction:column;">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+            <div class="icon-circle" style="background:#F0FDF4;color:#10B981;font-size:24px;">🖥️</div>
+            <div>
+              <h3 class="fw-800 fs-28">OpenCode</h3>
+              <p class="text-muted" style="font-size:16px;">开源终端工具</p>
+            </div>
+          </div>
+          <ul style="font-size:18px;line-height:2.2;color:var(--muted);list-style:none;flex:1;">
+            <li>✅ 终端原生体验</li>
+            <li>✅ 完全开源可定制</li>
+            <li>✅ 支持多 LLM 后端</li>
+            <li>✅ MCP 协议支持</li>
+            <li>✅ 本地优先，隐私安全</li>
+          </ul>
+          <div style="margin-top:24px;padding:16px;background:#F0FDF4;border-radius:12px;text-align:center;">
+            <span class="fw-700 fs-20" style="color:#10B981;">免费开源</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 15: Summary -->
+    <section class="slide" data-slide="15">
+      <span class="section-number">15</span>
+      <h2 class="slide-title">核心要点总结</h2>
+      <div class="title-accent"></div>
+      <div class="grid-3 mb-32" style="gap:24px;">
+        <div class="card animate-in" style="padding:28px;display:flex;align-items:flex-start;gap:20px;">
+          <span style="font-size:36px;font-weight:800;color:var(--accent);opacity:0.4;">01</span>
+          <div>
+            <h4 class="fw-700 fs-20 mb-16" style="margin-bottom:8px;">LLM 是预测器</h4>
+            <p class="text-muted" style="font-size:16px;">理解 Token 预测本质，合理设定期望</p>
+          </div>
+        </div>
+        <div class="card animate-in" style="padding:28px;display:flex;align-items:flex-start;gap:20px;">
+          <span style="font-size:36px;font-weight:800;color:var(--secondary);opacity:0.4;">02</span>
+          <div>
+            <h4 class="fw-700 fs-20" style="margin-bottom:8px;">Agent = LLM + 工具</h4>
+            <p class="text-muted" style="font-size:16px;">感知、行动、记忆三大模块补齐模型短板</p>
+          </div>
+        </div>
+        <div class="card animate-in" style="padding:28px;display:flex;align-items:flex-start;gap:20px;">
+          <span style="font-size:36px;font-weight:800;color:#10B981;opacity:0.4;">03</span>
+          <div>
+            <h4 class="fw-700 fs-20" style="margin-bottom:8px;">Loop 是核心模式</h4>
+            <p class="text-muted" style="font-size:16px;">思考→行动→观察 循环驱动任务完成</p>
+          </div>
+        </div>
+        <div class="card animate-in" style="padding:28px;display:flex;align-items:flex-start;gap:20px;">
+          <span style="font-size:36px;font-weight:800;color:#8B5CF6;opacity:0.4;">04</span>
+          <div>
+            <h4 class="fw-700 fs-20" style="margin-bottom:8px;">MCP 统一接口</h4>
+            <p class="text-muted" style="font-size:16px;">标准化协议让工具即插即用</p>
+          </div>
+        </div>
+        <div class="card animate-in" style="padding:28px;display:flex;align-items:flex-start;gap:20px;">
+          <span style="font-size:36px;font-weight:800;color:#D97706;opacity:0.4;">05</span>
+          <div>
+            <h4 class="fw-700 fs-20" style="margin-bottom:8px;">成本意识</h4>
+            <p class="text-muted" style="font-size:16px;">Token 就是钱，优化调用是核心技能</p>
+          </div>
+        </div>
+        <div class="card animate-in" style="padding:28px;display:flex;align-items:flex-start;gap:20px;">
+          <span style="font-size:36px;font-weight:800;color:#EC4899;opacity:0.4;">06</span>
+          <div>
+            <h4 class="fw-700 fs-20" style="margin-bottom:8px;">工具选型</h4>
+            <p class="text-muted" style="font-size:16px;">根据场景选择 Copilot / Cursor / OpenCode</p>
+          </div>
+        </div>
+      </div>
+      <div class="card animate-in text-center" style="padding:48px;background:linear-gradient(135deg,#FFF7ED,#FEF3C7);border:none;">
+        <h3 style="font-size:40px;font-weight:800;margin-bottom:12px;">Q & A</h3>
+        <p class="text-muted fs-22">感谢聆听，欢迎提问与讨论</p>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div id="progress-bar"></div>
+<div id="slide-counter"></div>
+
+<script>
+(function() {
+  const container = document.getElementById('deck-container');
+  const slides = document.querySelectorAll('.slide');
+  const progressBar = document.getElementById('progress-bar');
+  const slideCounter = document.getElementById('slide-counter');
+  const total = slides.length;
+  let current = 0;
+
+  function scaleToFit() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const scaleX = vw / 1920;
+    const scaleY = vh / 1080;
+    const scale = Math.min(scaleX, scaleY);
+    container.style.transform = 'scale(' + scale + ')';
+  }
+
+  function showSlide(index) {
+    slides.forEach(function(s, i) {
+      s.classList.remove('active', 'prev');
+      if (i === index) {
+        s.classList.add('active');
+      } else if (i < index) {
+        s.classList.add('prev');
+      }
+    });
+    current = index;
+    progressBar.style.width = ((current + 1) / total * 100) + '%';
+    slideCounter.textContent = (current + 1) + ' / ' + total;
+  }
+
+  function next() {
+    if (current < total - 1) showSlide(current + 1);
+  }
+
+  function prev() {
+    if (current > 0) showSlide(current - 1);
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      next();
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      prev();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      showSlide(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      showSlide(total - 1);
+    }
+  });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  });
+  document.addEventListener('touchend', function(e) {
+    const diff = e.changedTouches[0].screenX - touchStartX;
+    if (Math.abs(diff) > 50) {
+      if (diff < 0) next(); else prev();
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    const x = e.clientX;
+    if (x > window.innerWidth * 0.6) next();
+    else if (x < window.innerWidth * 0.4) prev();
+  });
+
+  window.addEventListener('resize', scaleToFit);
+  scaleToFit();
+  showSlide(0);
+})();
+</script>
+</body>
+</html>
