@@ -1,0 +1,11 @@
+{
+  "name": "docx-to-md-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for converting Word documents to Markdown with OCR",
+  "private": true,
+  "dependencies": {
+    "mammoth": "^1.6.0",
+    "turndown": "^7.1.2",
+    "tesseract.js": "^5.0.0"
+  }
+}
