@@ -36,10 +36,24 @@ export function makeContext(opts: ApiPluginOptions): ApiContext {
   };
 }
 
-export async function readBody(req: Connect.IncomingMessage): Promise<unknown> {
+const JSON_BODY_MAX_BYTES = 1024 * 1024;
+
+export async function readBody(
+  req: Connect.IncomingMessage,
+  maxBytes: number = JSON_BODY_MAX_BYTES,
+): Promise<unknown> {
   return await new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
-    req.on('data', (c: Buffer) => chunks.push(c));
+    let total = 0;
+    req.on('data', (c: Buffer) => {
+      total += c.length;
+      if (total > maxBytes) {
+        req.destroy();
+        reject(new Error('request body too large'));
+        return;
+      }
+      chunks.push(c);
+    });
     req.on('end', () => {
       const raw = Buffer.concat(chunks).toString('utf8');
       if (!raw) return resolve({});
