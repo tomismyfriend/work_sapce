@@ -11,11 +11,27 @@ if (!imagesDir || !outputFile) {
   process.exit(1);
 }
 
+if (!fs.existsSync(imagesDir)) {
+  console.error(`Error: images directory not found: ${imagesDir}`);
+  process.exit(1);
+}
+
 const normalizedTessdata = tessdataDir.replace(/\\/g, "/");
 
-const imageFiles = fs.readdirSync(imagesDir)
-  .filter(f => /\.(png|jpg|jpeg|bmp|tiff)$/i.test(f))
-  .sort();
+let imageFiles;
+try {
+  imageFiles = fs.readdirSync(imagesDir)
+    .filter(f => /\.(png|jpg|jpeg|bmp|tiff)$/i.test(f))
+    .sort();
+} catch (err) {
+  console.error(`Error reading images directory: ${err.message}`);
+  process.exit(1);
+}
+
+if (imageFiles.length === 0) {
+  console.error(`No image files found in: ${imagesDir}`);
+  process.exit(1);
+}
 
 async function run() {
   const results = {};
@@ -52,4 +68,7 @@ async function run() {
   console.log(`\nResults saved to: ${outputFile}`);
 }
 
-run();
+run().catch((err) => {
+  console.error(`OCR failed: ${err.message}`);
+  process.exit(1);
+});

@@ -76,8 +76,28 @@ fi
 
 # ── 从 timeline.json 读 totalDuration 和 voiceover 路径 ──
 TIMELINE_DIR="$(cd "$(dirname "$TIMELINE")" && pwd)"
-TOTAL_DURATION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$TIMELINE','utf8')).totalDuration)")
-VOICEOVER_REL=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$TIMELINE','utf8')).voiceover || 'voiceover.mp3')")
+TOTAL_DURATION=$(node -e "
+  try {
+    const t = JSON.parse(require('fs').readFileSync('$TIMELINE','utf8'));
+    if (typeof t.totalDuration !== 'number' || t.totalDuration <= 0) {
+      console.error('ERROR: timeline.json 缺少有效的 totalDuration');
+      process.exit(1);
+    }
+    console.log(t.totalDuration);
+  } catch(e) {
+    console.error('ERROR: 无法解析 timeline.json: ' + e.message);
+    process.exit(1);
+  }
+")
+VOICEOVER_REL=$(node -e "
+  try {
+    const t = JSON.parse(require('fs').readFileSync('$TIMELINE','utf8'));
+    console.log(t.voiceover || 'voiceover.mp3');
+  } catch(e) {
+    console.error('ERROR: 无法解析 timeline.json: ' + e.message);
+    process.exit(1);
+  }
+")
 VOICEOVER="$TIMELINE_DIR/$VOICEOVER_REL"
 
 if [ ! -f "$VOICEOVER" ]; then

@@ -12,12 +12,22 @@ if (!inputPath || !outputPath) {
   process.exit(1);
 }
 
+if (!fs.existsSync(inputPath)) {
+  console.error(`Error: input file not found: ${inputPath}`);
+  process.exit(1);
+}
+
 const absoluteImagesDir = path.isAbsolute(imagesDir) 
   ? imagesDir 
   : path.resolve(path.dirname(outputPath), imagesDir);
 
-if (!fs.existsSync(absoluteImagesDir)) {
-  fs.mkdirSync(absoluteImagesDir, { recursive: true });
+try {
+  if (!fs.existsSync(absoluteImagesDir)) {
+    fs.mkdirSync(absoluteImagesDir, { recursive: true });
+  }
+} catch (err) {
+  console.error(`Error creating images directory: ${err.message}`);
+  process.exit(1);
 }
 
 let imageCounter = 0;

@@ -17,12 +17,20 @@ if (!fs.existsSync(tessdataDir)) {
 function download(url, dest) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest);
+    file.on("error", (err) => {
+      file.close();
+      try { fs.unlinkSync(dest); } catch (_) {}
+      reject(new Error(`Write error for ${dest}: ${err.message}`));
+    });
     https.get(url, (response) => {
       if (response.statusCode === 302 || response.statusCode === 301) {
+        file.close();
         download(response.headers.location, dest).then(resolve).catch(reject);
         return;
       }
       if (response.statusCode !== 200) {
+        file.close();
+        try { fs.unlinkSync(dest); } catch (_) {}
         reject(new Error(`HTTP ${response.statusCode}`));
         return;
       }
@@ -30,18 +38,25 @@ function download(url, dest) {
       let downloaded = 0;
       response.on("data", (chunk) => {
         downloaded += chunk.length;
-        const pct = ((downloaded / total) * 100).toFixed(0);
-        process.stdout.write(`\r  Downloading: ${pct}%`);
+        if (total) {
+          const pct = ((downloaded / total) * 100).toFixed(0);
+          process.stdout.write(`\r  Downloading: ${pct}%`);
+        }
       });
       response.pipe(file);
       file.on("finish", () => { file.close(); resolve(); });
-    }).on("error", reject);
+    }).on("error", (err) => {
+      file.close();
+      try { fs.unlinkSync(dest); } catch (_) {}
+      reject(err);
+    });
   });
 }
 
 async function setup() {
   console.log("Setting up Tesseract language data...\n");
 
+  const failures = [];
   for (const file of files) {
     const gzPath = path.join(tessdataDir, file.name);
 
@@ -59,10 +74,18 @@ async function setup() {
       console.log(`\n[DONE] ${file.desc}: ${sizeMB} MB\n`);
     } catch (err) {
       console.error(`\n[ERROR] ${file.desc}: ${err.message}\n`);
+      failures.push(file.desc);
     }
   }
 
+  if (failures.length > 0) {
+    console.error(`Setup failed for: ${failures.join(", ")}`);
+    process.exit(1);
+  }
   console.log("Setup complete. Language data in:", tessdataDir);
 }
 
-setup();
+setup().catch((err) => {
+  console.error(`Setup failed: ${err.message}`);
+  process.exit(1);
+});
