@@ -22,8 +22,15 @@ from pathlib import Path
 
 
 def parse_viewport(s):
-    w, h = s.split('x')
-    return {'width': int(w), 'height': int(h)}
+    parts = s.split('x')
+    if len(parts) != 2:
+        print(f"ERROR: viewport格式不正确: '{s}', 应为 WxH (如 1920x1080)")
+        sys.exit(1)
+    try:
+        return {'width': int(parts[0]), 'height': int(parts[1])}
+    except ValueError:
+        print(f"ERROR: viewport包含非数字值: '{s}', 应为 WxH (如 1920x1080)")
+        sys.exit(1)
 
 
 def verify_html(html_path, viewports=None, slides=0, output_dir=None, show=False, wait=2000):

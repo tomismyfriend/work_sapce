@@ -15,16 +15,30 @@ def read_hash_file(file_path):
         print(f"错误: 文件 '{file_path}' 不存在")
         sys.exit(1)
     
-    with open(file_path, 'r', encoding='utf-8') as f:
-        hashes = [line.strip() for line in f if line.strip()]
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            hashes = [line.strip() for line in f if line.strip()]
+    except PermissionError:
+        print(f"错误: 没有权限读取文件 '{file_path}'")
+        sys.exit(1)
+    except UnicodeDecodeError:
+        print(f"错误: 文件 '{file_path}' 包含无法解码的字符")
+        sys.exit(1)
+    except OSError as e:
+        print(f"错误: 读取文件 '{file_path}' 失败: {e}")
+        sys.exit(1)
     
     return hashes
 
 
 def format_patches(hashes, output_dir, start_number=1):
     """按顺序format patch文件"""
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    try:
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+    except OSError as e:
+        print(f"错误: 无法创建输出目录 '{output_dir}': {e}")
+        sys.exit(1)
     
     for idx, commit_hash in enumerate(hashes):
         patch_number = start_number + idx

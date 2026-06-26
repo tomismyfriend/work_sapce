@@ -44,6 +44,7 @@ for arg in "$@"; do
   esac
 done
 [ -z "$INPUT" ] && { echo "Usage: $0 input.mp4 [gif_width] [--minterpolate]" >&2; exit 1; }
+[ ! -f "$INPUT" ] && { echo "✗ Input file not found: $INPUT" >&2; exit 1; }
 
 DIR=$(dirname "$INPUT")
 BASE=$(basename "$INPUT" .mp4)

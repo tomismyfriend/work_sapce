@@ -83,12 +83,24 @@ if __name__ == "__main__":
     input_file = sys.argv[1]
     output_dir = sys.argv[2] if len(sys.argv) > 2 else "."
 
-    slides = extract_pptx(input_file, output_dir)
+    if not os.path.isfile(input_file):
+        print(f"Error: input file not found: {input_file}")
+        sys.exit(1)
+
+    try:
+        slides = extract_pptx(input_file, output_dir)
+    except Exception as e:
+        print(f"Error extracting PPTX: {e}")
+        sys.exit(1)
 
     # Write extracted data as JSON
     output_path = os.path.join(output_dir, "extracted-slides.json")
-    with open(output_path, "w") as f:
-        json.dump(slides, f, indent=2)
+    try:
+        with open(output_path, "w") as f:
+            json.dump(slides, f, indent=2)
+    except OSError as e:
+        print(f"Error writing output: {e}")
+        sys.exit(1)
 
     print(f"Extracted {len(slides)} slides to {output_path}")
     for s in slides:
